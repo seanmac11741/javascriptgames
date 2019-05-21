@@ -177,12 +177,18 @@
         }
       }
       function touchMoveHandler(e) {
-        if(e.touches) {
-            player.x = e.pageX - canvas.offsetLeft - player.width / 2;
+        e.preventDefault();
+        var touches = e.changedTouches;
+        //keeps track of continuous touches, hopefully
+        // for(var i=0; i< touches.length; i++){
+        //     player.x = touches[i].pageX - canvas.offsetLeft - player.width / 2;
+        // }
+
+        player.x = touches[touches.length];
             // playerY = e.touches[0].pageY - canvas.offsetTop - playerHeight / 2;
             // output.innerHTML = "Touch: "+ " x: " + playerX + ", y: " + playerY;
-            e.preventDefault();
-        }
+
+
       }
 
         //GENERIC COLLISION FUNCTION THAT I LOVE. Takes input of two objects and
@@ -255,7 +261,7 @@
           //print current mouse position
           context.fillStyle = "#000000";
           // context.fillText(current_mouse_pos,10,20);
-          context.fillText("Dodge blocks! Use mouse or touch!",10, 20);
+          context.fillText("Dodge blocks4! Use mouse or touch!",10, 20);
           context.fillText("Blocks dodged:" + dodged, context.canvas.width - 250, 20);
           var isTouch = (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
           // context.fillText("Ontouch Test " + isTouch, 10, 30);
