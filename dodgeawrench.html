@@ -160,9 +160,18 @@
 
               }
 
+              else if(event.type == "touchstart"){
+                if(event.clientX > context.canvas.offsetLeft && event.clientX < context.canvas.offsetLeft + context.canvas.width){
+                    var relx = event.clientX - context.canvas.offsetLeft;
+                    // console.log(relx);
+                    controller.mouse = true;
+                    mousex = relx;
+                }
+              }
 
-            }
-        };
+              else controller.mouse = false;
+        }
+      };
 
         //GENERIC COLLISION FUNCTION THAT I LOVE. Takes input of two objects and
         //returns true if they are touching
