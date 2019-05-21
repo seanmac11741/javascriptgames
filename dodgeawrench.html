@@ -176,6 +176,14 @@
             e.preventDefault();
         }
       }
+      function touchMoveHandler(e) {
+        if(e.touches) {
+            player.x = e.pageX - canvas.offsetLeft - player.width / 2;
+            // playerY = e.touches[0].pageY - canvas.offsetTop - playerHeight / 2;
+            // output.innerHTML = "Touch: "+ " x: " + playerX + ", y: " + playerY;
+            e.preventDefault();
+        }
+      }
 
         //GENERIC COLLISION FUNCTION THAT I LOVE. Takes input of two objects and
         //returns true if they are touching
@@ -279,7 +287,7 @@
         window.addEventListener("keyup", controller.keyListener);
         window.addEventListener("mousemove", controller.keyListener);
         window.addEventListener("touchstart", touchHandler);
-        window.addEventListener("touchmove", touchHandler);
+        window.addEventListener("touchmove", touchMoveHandler);
         localStorage.setItem("HP", "5");
         loop();
         // });
