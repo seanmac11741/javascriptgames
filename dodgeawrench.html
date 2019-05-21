@@ -34,10 +34,15 @@
         context.canvas.width = 640 ;
         //if you comment this out, sprite images look like shit
         context.imageSmoothingEnabled = false;
-        context.font = "20px Arial";
+        context.font = "80px Arial";
         var dodged = 0;
 
-
+        function preventDefault(e) {
+          e = e || window.event;
+          if (e.preventDefault)
+              e.preventDefault();
+          e.returnValue = false;
+        }
 
         //PLAYER OBJECT
         var player = {
@@ -159,19 +164,18 @@
                 }
 
               }
-
-              else if(event.type == "touchstart"){
-                if(event.clientX > context.canvas.offsetLeft && event.clientX < context.canvas.offsetLeft + context.canvas.width){
-                    var relx = event.clientX - context.canvas.offsetLeft;
-                    // console.log(relx);
-                    controller.mouse = true;
-                    mousex = relx;
-                }
-              }
-
               else controller.mouse = false;
         }
       };
+
+      function touchHandler(e) {
+        if(e.touches) {
+            player.x = e.touches[0].pageX - canvas.offsetLeft - player.width / 2;
+            // playerY = e.touches[0].pageY - canvas.offsetTop - playerHeight / 2;
+            // output.innerHTML = "Touch: "+ " x: " + playerX + ", y: " + playerY;
+            e.preventDefault();
+        }
+      }
 
         //GENERIC COLLISION FUNCTION THAT I LOVE. Takes input of two objects and
         //returns true if they are touching
@@ -196,6 +200,11 @@
         var loopcount = 0;
 
         function loop(){
+          context.canvas.width = window.innerWidth - 50;
+          context.canvas.height = window.innerHeight - 50;
+
+          context.font = "20px Arial";
+
           if(loopcount> 100){
             loopcount =1;
           }
@@ -238,10 +247,10 @@
           //print current mouse position
           context.fillStyle = "#000000";
           // context.fillText(current_mouse_pos,10,20);
-          context.fillText("Dodge!", 250, 20);
-          context.fillText("Blocks dodged:" + dodged, 350, 20);
+          context.fillText("Dodge blocks! Use mouse or touch!",10, 20);
+          context.fillText("Blocks dodged:" + dodged, context.canvas.width - 250, 20);
           var isTouch = (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
-          context.fillText("Ontouch Test " + isTouch, 10, 30);
+          // context.fillText("Ontouch Test " + isTouch, 10, 30);
 
           //draw instructions!
           // context.fillText("You have 5 lives, don't lose them all!", 400 - viewport.x,250);
@@ -260,11 +269,19 @@
         //adding an event listener to the tile_sheet object. takes an event and then
         //executes an action => defines custom event right here
         // tile_sheet.addEventListener("load", (event) => {
-          window.addEventListener("keydown", controller.keyListener);
-          window.addEventListener("keyup", controller.keyListener);
-          window.addEventListener("mousemove", controller.keyListener);
-          localStorage.setItem("HP", "5");
-          loop();
+
+        //this should prevent scrolling
+        window.ontouchmove  = preventDefault; //mobile
+        window.onwheel = preventDefault;
+        document.addEventListener('wheel', preventDefault, {passive: false}); //chrome
+
+        window.addEventListener("keydown", controller.keyListener);
+        window.addEventListener("keyup", controller.keyListener);
+        window.addEventListener("mousemove", controller.keyListener);
+        window.addEventListener("touchstart", touchHandler);
+        window.addEventListener("touchmove", touchHandler);
+        localStorage.setItem("HP", "5");
+        loop();
         // });
         //BEGIN OF ACTUAL CODE. It runs this first and the listener does things
         //once the assests are loaded
