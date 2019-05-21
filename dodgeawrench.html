@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset = "utf-8">
+    <meta name = "template" content = "width=device_width">
+    <title>Dodger</title>
+
+    <style>
+      *{margin:0; padding:0;}
+
+      html, body {height:100%; width:100%; align-content:space-around;
+                  background-color: #202830; color:#ffffff; display: grid;
+                justify-content:center;}
+
+
+    </style>
+
+  </head>
+
+  <body>
+      <canvas></canvas>
+
+      <script type = "text/javascript">
+      //REMEMBER!!! core of any video game is this list, for every game loop:
+      //1. get input from user
+      //2. evaluate input
+      //3. display changes
+
+        //global vars can go here, this is the canvas that we write everything to
+
+        var context = document.querySelector("canvas").getContext("2d");
+        var current_mouse_pos = "0,0";
+        context.canvas.height = 640;
+        context.canvas.width = 640 ;
+        //if you comment this out, sprite images look like shit
+        context.imageSmoothingEnabled = false;
+        context.font = "20px Arial";
+        var dodged = 0;
+
+
+
+        //PLAYER OBJECT
+        var player = {
+          height:32,
+          width:32,
+          jumping:true,
+          x:220,
+          x_velocity:0,
+          y:500,
+          y_velocity:0,
+          charsheetx:0,
+          charsheety:0,
+
+          physics:function(){
+
+                //PHYSICS!!!!!
+                player.y_velocity += 1.5; //gravity always add velocity each iteration (increase in v = gain in a)
+                player.y += player.y_velocity; //change y position based on velocity calced up to here
+                player.x += player.x_velocity;
+
+                player.x_velocity *= 0.9;
+                player.y_velocity *= 0.9; //friction, makes sense in x... not in y...
+
+                if(player.y_velocity>0){
+                  player.jumping = true;
+                }
+
+                //Screen collision on the left
+                if(player.x < 1){
+                  player.x = 1;
+                }
+                //Screen collision on the right
+                if(player.x > context.canvas.width - player.width){
+                  player.x = context.canvas.width - player.width-1;
+                }
+
+
+                //static collision detection for the floor
+                player.y = context.canvas.height - player.height;
+
+                //collision with drops
+
+                for(var i =0; i<drop.x.length; i++){
+                  if(collision(player.x, player.y, player.width, player.height,
+                               drop.x[i], drop.y[i], drop.w, drop.h)){
+                                 pain();
+                               }
+                }
+
+          },
+
+          drawPlayer:function(x, y){
+            // context.drawImage(tile_sheet,player.charsheetx+(player.width*7),player.charsheety,player.width,player.height,
+            // x,y,player.width,player.height);
+            context.fillStyle = "#ffffff";
+            context.fillRect(x,y,32,32);
+          }
+        };
+
+        var drop = {
+          x:[300],
+          y:[0],
+          w:20,
+          h:20,
+          speed:5,
+
+          drawdrop:function(){
+            context.fillStyle = "#000000";
+            for(var i=0; i<drop.x.length; i++){
+              context.fillRect(drop.x[i], drop.y[i], drop.w, drop.h);
+            }
+
+          },
+
+          physics:function(){
+            for(var i =0; i<drop.x.length; i++){
+              if(drop.y[i] > context.canvas.height){
+                drop.y[i] = 0;
+                drop.x[i] = Math.floor(Math.random() * context.canvas.width);
+                dodged ++;
+
+                //make it more difficult every so often >:D
+                if(dodged%10 == 0 && dodged > 0){
+                  drop.x.push(Math.floor(Math.random() * context.canvas.width));
+                  drop.y.push(Math.floor(Math.random() * context.canvas.height/4 - 200));
+                }
+
+                //the world is not ready for this just yet...
+                // if(dodged%50 == 0 && dodged>0){
+                //   drop.speed ++;
+                // }
+              }
+              drop.y[i] += drop.speed;
+            }
+
+          }
+        };
+
+        var mousex = 300;
+
+        //CONTROLLER VARS AND FUNCTIONS
+        // var audio = new Audio('connor1.mp3');
+        var controller = {
+          mouse:false,
+
+            //defines a listener for the keys that performs a custom event when the
+            //listener is triggered
+        keyListener:function(event){
+              //this var sets the key state to either 1: pushing a key or 2: not pushing a key
+              var key_state = (event.type == "keydown")?true:false;
+
+              if (event.type == "mousemove"){
+                if(event.clientX > context.canvas.offsetLeft && event.clientX < context.canvas.offsetLeft + context.canvas.width){
+                    var relx = event.clientX - context.canvas.offsetLeft;
+                    // console.log(relx);
+                    controller.mouse = true;
+                    mousex = relx;
+
+                }
+
+              }
+
+
+            }
+        };
+
+        //GENERIC COLLISION FUNCTION THAT I LOVE. Takes input of two objects and
+        //returns true if they are touching
+        collision = function(ax,ay,aw,ah,bx,by,bw,bh){
+            if(ax < bx+bw && ay < by+bh && bx < ax+aw && by < ay+ah){
+              return true;
+            }
+            else {
+              return false;
+            }
+        };
+
+        //pain function that hurts the player. This will happen quite alot on level 6 lmao
+        pain = function(){
+              window.alert("You dodged " +dodged + " blocks!")
+              dodged = 0;
+              drop.x = [300];
+              drop.y = [0];
+        };
+
+        //IMPORTANT!!!! USE THIS SHIT TO SWITCH ANIMATIONS
+        var loopcount = 0;
+
+        function loop(){
+          if(loopcount> 100){
+            loopcount =1;
+          }
+
+          loopcount +=4.5;
+          var height = context.canvas.height;
+          var width = context.canvas.width;
+
+          //draw background, make the resolution based off of the browser window
+          context.fillStyle = "#2e4263";
+          context.fillRect(0,0,width,height);
+
+
+          //context.drawImage(title_sheet,0,0,width, height);
+
+          //after initializing everything, allow for input from user via listeners
+          //STARTS THE JUMP
+          if(controller.mouse){
+            player.x = mousex - player.width/2;
+          }
+
+          if(controller.space){
+            // pew.spawn = true;
+            // pew.x = player.x + player.width;
+            // pew.y = player.y + (player.height * 0.5);
+          }
+
+/* ----------------------------COLLISION SECTION -------------------------------- */
+
+
+
+/* ---------------------------- testing variables, remove eventually--------------- */
+          //var current_cell = "Boss.y: "+ Math.round(boss.y, 2) ;
+          //create HP object if its not there already
+          if(localStorage.getItem("HP") == null) localStorage.setItem("HP", "5");
+
+          //var current_cell = "Viewport.x "+ Math.round(viewport.x,2);
+          //context.fillText(current_cell, scaled_size,scaled_size+10);
+
+          //print current mouse position
+          context.fillStyle = "#000000";
+          // context.fillText(current_mouse_pos,10,20);
+          context.fillText("Dodge!", 250, 20);
+          context.fillText("Blocks dodged:" + dodged, 350, 20);
+          var isTouch = (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
+          context.fillText("Ontouch Test " + isTouch, 10, 30);
+
+          //draw instructions!
+          // context.fillText("You have 5 lives, don't lose them all!", 400 - viewport.x,250);
+          //draw the player at the end of the physics calculations
+          player.physics();
+          player.drawPlayer(player.x, player.y);
+
+          drop.physics();
+          drop.drawdrop();
+
+          window.requestAnimationFrame(loop);
+          //main loop end
+        };
+
+        var tile_sheet = new Image();
+        //adding an event listener to the tile_sheet object. takes an event and then
+        //executes an action => defines custom event right here
+        // tile_sheet.addEventListener("load", (event) => {
+          window.addEventListener("keydown", controller.keyListener);
+          window.addEventListener("keyup", controller.keyListener);
+          window.addEventListener("mousemove", controller.keyListener);
+          localStorage.setItem("HP", "5");
+          loop();
+        // });
+        //BEGIN OF ACTUAL CODE. It runs this first and the listener does things
+        //once the assests are loaded
+        // tile_sheet.src = "ship.png";
+      </script>
+
+  </body>
+</html>
