@@ -168,28 +168,13 @@
         }
       };
 
-      function touchHandler(e) {
-        if(e.touches) {
-            player.x = e.touches[0].pageX - canvas.offsetLeft - player.width / 2;
-            // playerY = e.touches[0].pageY - canvas.offsetTop - playerHeight / 2;
-            // output.innerHTML = "Touch: "+ " x: " + playerX + ", y: " + playerY;
-            e.preventDefault();
-        }
-      }
+
       function touchMoveHandler(e) {
         e.preventDefault();
-        var touches = e.changedTouches;
+        var touchloc = e.targetTouches[0];
         //keeps track of continuous touches, hopefully
-        for(var i=0; i< touches.length; i++){
-          var idx = ongoingTouchIndexById(touches[i].identifier);
-          if(idx >= 0){
-            player.x = touches[i].pageX - canvas.offsetLeft - player.width / 2;
-          }
-
-        }
-
-            // playerY = e.touches[0].pageY - canvas.offsetTop - playerHeight / 2;
-            // output.innerHTML = "Touch: "+ " x: " + playerX + ", y: " + playerY;
+        player.x = touchloc.pageX - context.canvas.offsetLeft - player.width/2;
+        // player.y = touchloc.pageY - context.canvas.offsetTop + player.height;
 
 
       }
@@ -264,7 +249,7 @@
           //print current mouse position
           context.fillStyle = "#000000";
           // context.fillText(current_mouse_pos,10,20);
-          context.fillText("Dodge blocks6! Use mouse or touch!",10, 20);
+          context.fillText("Dodge blocks! Use mouse or touch!",10, 20);
           context.fillText("Blocks dodged:" + dodged, context.canvas.width - 250, 20);
           var isTouch = (('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0));
           // context.fillText("Ontouch Test " + isTouch, 10, 30);
@@ -295,7 +280,6 @@
         window.addEventListener("keydown", controller.keyListener);
         window.addEventListener("keyup", controller.keyListener);
         window.addEventListener("mousemove", controller.keyListener);
-        window.addEventListener("touchstart", touchHandler);
         window.addEventListener("touchmove", touchMoveHandler);
         localStorage.setItem("HP", "5");
         loop();
