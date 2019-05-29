@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset = "utf-8">
+    <meta name = "template" content = "width=device_width">
+    <title>Platformin</title>
+
+    <style>
+      *{margin:0; padding:0;}
+
+      html, body {height:100%; width:100%; align-content:space-around;
+                  background-color: #202830; color:#ffffff; display: grid;
+                justify-content:center;}
+
+
+    </style>
+
+  </head>
+
+  <body>
+      <canvas></canvas>
+
+      <script type = "text/javascript">
+      //REMEMBER!!! core of any video game is this list, for every game loop:
+      //1. get input from user
+      //2. evaluate input
+      //3. display changes
+
+        //global vars can go here, this is the canvas that we write everything to
+
+        var context = document.querySelector("canvas").getContext("2d");
+        var current_mouse_pos = "0,0";
+        context.canvas.height = 700;
+        context.canvas.width = 1000 ;
+        var bigW = context.canvas.width;
+        var bigH = context.canvas.height;
+        var tenscale = bigH/10;
+
+        //if you comment this out, sprite images look like shit
+        context.imageSmoothingEnabled = false;
+        context.font = "20px Arial";
+        var deaths = 0;
+
+        context.canvas.addEventListener('mousemove', function(evt) {
+          current_mouse_pos = getMousePos(context.canvas, evt);
+        });
+
+
+        //PLAYER OBJECT
+        var player = {
+          height:32,
+          width:32,
+          jumping:true,
+          x:0,
+          x_velocity:0,
+          y:0 ,
+          y_velocity:0,
+          charsheetx:0,
+          charsheety:0,
+          grav:0,
+
+          updatevals:function(x){
+            player.height = x/5;
+            player.width = x/5;
+            player.grav = (1.5 * bigH)/700;  //(1.5/700)*bigH;
+            player.fric = 0.9; //(.9/1000)*bigW;
+          },
+
+          physics:function(){
+
+                //PHYSICS!!!!!
+                player.y_velocity += player.grav; //grav is ratio of original h to original g
+                player.y += player.y_velocity; //change y position based on velocity calced up to here
+                player.x += player.x_velocity;
+
+                player.x_velocity *= player.fric;
+                player.y_velocity *= player.fric; //friction, makes sense in x... not in y...
+
+                if(player.y_velocity>0){
+                  player.jumping = true;
+                }
+
+                //Screen collision on the left
+                if(player.x < 1){
+                  player.x = 1;
+                }
+                //Screen collision on the right
+                if(player.x > bigW - player.width){
+                  player.x = bigW - player.width-1;
+                }
+
+
+                //static collision detection for the floor
+                if(player.y + player.height > context.canvas.height){
+                  player.jumping = false;
+                  player.y =  context.canvas.height - player.height;
+                  player.y_velocity = 0;
+                }
+
+                //collision with lava
+                if(collision(player.x, player.y, player.width, player.height,
+                            lava.x, lava.y, lava.w, lava.h)){
+                              pain();
+                            }
+               //collision with win
+               if(collision(player.x, player.y, player.width, player.height,
+                            winblock.x, winblock.y, winblock.w, winblock.h)){
+                              window.alert("You win! Deaths:" + deaths );
+                              deaths = -1;
+                              pain();
+                            }
+
+                //collision with platform(s)
+                for(var i=0; i < platforms.xcords.length; i++){
+                  if(collision(player.x, player.y, player.width, player.height,
+                               platforms.xcords[i], platforms.ycords[i], platforms.w, platforms.h)){
+                  //if they land on top of a block
+                    if(player.y +player.height < platforms.ycords[i] +(platforms.h/3)){
+                      player.y = platforms.ycords[i] - player.height;
+                      player.jumping = false;
+                      player.y_velocity = 0;
+                    }
+                    else if(player.y > platforms.ycords[i] + (platforms.h/4)){
+                      player.y = platforms.ycords[i] + platforms.h;
+                      player.y_veolocity =0;
+                    }
+                    else{
+                      // player.y = platforms.ycords[i] +platforms.h;
+                      if(player.x + player.width < platforms.xcords[i] +(platforms.w/2))
+                        player.x = platforms.xcords[i] - platforms.w;
+                      else
+                        player.x = platforms.xcords[i] + platforms.w;
+                    }
+
+                  }
+                }
+          },
+
+          drawPlayer:function(x, y){
+            // context.drawImage(tile_sheet,player.charsheetx+(player.width*7),player.charsheety,player.width,player.height,
+            // x,y,player.width,player.height);
+            context.fillStyle = "#ffffff";
+            context.fillRect(player.x,player.y,player.width,player.height);
+          }
+        };
+
+        var platforms = {
+          w:0, //these are set every loop iteration
+          h:0,
+
+          xcords:[0],
+          ycords:[0],
+
+          setValues:function(x){
+            platforms.xcords = [0,  bigW/2, 0.2*bigW];
+            platforms.ycords = [x*2,bigH/2, 0.88*bigH];
+            platforms.w = x;
+            platforms.h = x;
+          },
+
+          drawPlatforms:function(){
+            context.fillStyle = "#000000";
+            for(var i=0; i < platforms.xcords.length; i++){
+              context.fillRect(platforms.xcords[i], platforms.ycords[i], platforms.w, platforms.h);
+            }
+          }
+        };
+
+        var lava = {
+          x:0,
+          y:bigH - tenscale,
+          w:bigW,
+          h:200,
+
+          drawLava:function(){
+            lava.y = bigH - tenscale;
+            lava.w = bigW;
+            context.fillStyle = "#EA8A00";
+            context.fillRect(lava.x, lava.y, lava.w, lava.h);
+          }
+        };
+
+        var winblock = {
+          x:964,
+          y:0,
+          w:32,
+          h:32,
+
+          drawWin:function(){
+            winblock.x = bigW - tenscale;
+            winblock.w = tenscale/2;
+            winblock.h = tenscale/2;
+            context.fillStyle = "#13E40B";
+            context.fillRect(winblock.x, winblock.y, winblock.w, winblock.h);
+          }
+        };
+
+        //CONTROLLER VARS AND FUNCTIONS
+        // var audio = new Audio('connor1.mp3');
+        var controller = {
+          left:false,
+          right:false,
+          up:false,
+          space:false,
+
+            //defines a listener for the keys that performs a custom event when the
+            //listener is triggered
+            keyListener:function(event){
+              //this var sets the key state to either 1: pushing a key or 2: not pushing a key
+              var key_state = (event.type == "keydown")?true:false;
+
+              switch(event.keyCode){
+                case 65: //left arrow key
+                  controller.left = key_state;
+                break;
+                case 87: //up arrow key
+                  controller.up = key_state;
+                break;
+                case 68: //right arrow key
+                  controller.right = key_state;
+                break;
+                case 37: //left arrow key
+                  controller.left = key_state;
+                break;
+                case 38: //up arrow key
+                  controller.up = key_state;
+                break;
+                case 39: //right arrow key
+                  controller.right = key_state;
+                break;
+                case 32: //space key
+                  controller.space = key_state;
+                break;
+              }
+
+            }
+        };
+
+        //GENERIC COLLISION FUNCTION THAT I LOVE. Takes input of two objects and
+        //returns true if they are touching
+        collision = function(ax,ay,aw,ah,bx,by,bw,bh){
+            if(ax < bx+bw && ay < by+bh && bx < ax+aw && by < ay+ah){
+              return true;
+            }
+            else {
+              return false;
+            }
+        };
+
+        //pain function that hurts the player. This will happen quite alot on level 6 lmao
+        pain = function(){
+              player.x = 0;
+              player.y = 0;
+              player.x_velocity =0;
+              player.y_velocity=0;
+              player.jumping = false;
+              deaths ++;
+        };
+
+
+        getMousePos = function(canvas, evt){
+          var rect = canvas.getBoundingClientRect();
+          var xmouse = Math.round(evt.clientX - rect.left);
+          var ymouse = Math.round(evt.clientY - rect.top);
+          return Math.round((xmouse/bigW)*100)/100 + "," + Math.round((ymouse/bigH)*100)/100; //returns ratio of x position
+        };
+
+        //VIEWPORT CLASS
+          var viewport = {
+            x:100,
+            y:0,
+            w:640,
+            h:640,
+          };
+
+        //IMPORTANT!!!! USE THIS SHIT TO SWITCH ANIMATIONS
+        var loopcount = 0;
+
+        function loop(){
+
+          //this scales the canvas so that Width = height *1.5
+          if(window.innerWidth > window.innerHeight*1.5){
+            context.canvas.width = window.innerHeight*1.5 -10;
+            context.canvas.height = window.innerHeight -10;
+          }else {
+            context.canvas.height = window.innerWidth/1.5 -10;
+            context.canvas.width = window.innerWidth -10;
+          }
+
+          bigH = context.canvas.height;
+          bigW = context.canvas.width;
+          tenscale = bigH/10;
+
+          context.font = "20px Arial";
+
+          if(loopcount> 100){
+            loopcount =1;
+          }
+
+          loopcount +=4.5;
+
+          //draw background, make the resolution based off of the browser window
+          context.fillStyle = "#2e4263";
+          context.fillRect(0,0,bigW,bigH);
+
+
+          //context.drawImage(title_sheet,0,0,width, height);
+
+          //after initializing everything, allow for input from user via listeners
+          //STARTS THE JUMP
+          if(controller.up && player.jumping == false){
+            // player.y_velocity -= 40;
+            player.y_velocity -= bigH/17.5; //this is the jumping ratio height/original jump 700/40
+            player.jumping = true;
+          }
+
+          if(controller.left){
+            // player.x_velocity -= 0.8;
+            player.x_velocity -= 0.0008*bigW;
+          }
+
+          if(controller.right){
+            // player.x_velocity += 0.8;
+            player.x_velocity += 0.0008*bigW;
+          }
+
+          if(controller.space){
+            // pew.spawn = true;
+            // pew.x = player.x + player.width;
+            // pew.y = player.y + (player.height * 0.5);
+          }
+
+/* ----------------------------COLLISION SECTION -------------------------------- */
+
+
+
+/* ---------------------------- testing variables, remove eventually--------------- */
+          //var current_cell = "Boss.y: "+ Math.round(boss.y, 2) ;
+          //create HP object if its not there already
+          if(localStorage.getItem("HP") == null) localStorage.setItem("HP", "5");
+
+          //var current_cell = "Viewport.x "+ Math.round(viewport.x,2);
+          //context.fillText(current_cell, scaled_size,scaled_size+10);
+
+          //print current mouse position
+          context.fillStyle = "#000000";
+          context.fillText(current_mouse_pos,10,20);
+          context.fillText("Use arrow keys to move, get to green to win", 120, 20);
+          context.fillText("Deaths:" + bigW, 120, 50);
+
+          //draw instructions!
+          // context.fillText("You have 5 lives, don't lose them all!", 400 - viewport.x,250);
+
+          winblock.drawWin();
+          platforms.setValues(tenscale);
+          platforms.drawPlatforms();
+          lava.drawLava();
+          //draw the player at the end of the physics calculations
+          player.updatevals(tenscale);
+          player.physics();
+          player.drawPlayer(player.x, player.y);
+
+          window.requestAnimationFrame(loop);
+          //main loop end
+        };
+
+        var tile_sheet = new Image();
+        //adding an event listener to the tile_sheet object. takes an event and then
+        //executes an action => defines custom event right here
+        // tile_sheet.addEventListener("load", (event) => {
+          window.addEventListener("keydown", controller.keyListener);
+          window.addEventListener("keyup", controller.keyListener);
+          localStorage.setItem("HP", "5");
+          loop();
+        // });
+        //BEGIN OF ACTUAL CODE. It runs this first and the listener does things
+        //once the assests are loaded
+        // tile_sheet.src = "ship.png";
+      </script>
+
+  </body>
+</html>
