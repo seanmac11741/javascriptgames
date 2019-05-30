@@ -8,17 +8,21 @@
     <style>
       *{margin:0; padding:0;}
 
+
       html, body {height:100%; width:100%; align-content:space-around;
                   background-color: #202830; color:#ffffff; display: grid;
-                justify-content:center;}
+                justify-content:center; }
 
 
     </style>
 
   </head>
 
+
+    <button onclick="full();" ontouch="full();">Go Fullscreen</button>
+    <p><strong>Tip:</strong> Press the "Esc" key to exit full screen.</p>
   <body>
-      <canvas></canvas>
+      <canvas id="screen"></canvas>
 
       <script type = "text/javascript">
       //REMEMBER!!! core of any video game is this list, for every game loop:
@@ -41,9 +45,18 @@
         context.font = "20px Arial";
         var deaths = 0;
 
-        context.canvas.addEventListener('mousemove', function(evt) {
-          current_mouse_pos = getMousePos(context.canvas, evt);
-        });
+
+        function full() {
+          var canvas = document.getElementById("screen");
+          if(canvas.requestFullScreen)
+              canvas.requestFullScreen();
+          else if(canvas.webkitRequestFullScreen)
+              canvas.webkitRequestFullScreen();
+          else if(canvas.mozRequestFullScreen)
+              canvas.mozRequestFullScreen();
+
+            console.log('fullscreen!');
+        };
 
 
         //PLAYER OBJECT
