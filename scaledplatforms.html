@@ -254,6 +254,16 @@
             touchStartHandler:function(e){
               e.preventDefault();
               controller.up = true;
+
+              var touchloc = e.targetTouches[0];
+
+              if(touchloc.pageX > player.x){
+                controller.right = true;
+                console.log('right!');
+              }else{
+                controller.left = true;
+                console.log('left!');
+              }
             },
 
             //touch controller(s)
