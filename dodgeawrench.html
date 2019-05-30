@@ -279,8 +279,8 @@
 
         window.addEventListener("keydown", controller.keyListener);
         window.addEventListener("keyup", controller.keyListener);
-        window.addEventListener("mousemove", controller.keyListener);
-        window.addEventListener("touchmove", touchMoveHandler);
+        window.addEventListener("mousemove", controller.keyListener, {passive: false});
+        window.addEventListener("touchmove", touchMoveHandler, {passive: false});
         localStorage.setItem("HP", "5");
         loop();
         // });

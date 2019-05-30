@@ -113,23 +113,23 @@
                 //collision with platform(s)
                 for(var i=0; i < platforms.xcords.length; i++){
                   if(collision(player.x, player.y, player.width, player.height,
-                               platforms.xcords[i], platforms.ycords[i], platforms.w, platforms.h)){
+                               platforms.xcords[i]* bigW, platforms.ycords[i]*bigH, platforms.w, platforms.h)){
                   //if they land on top of a block
-                    if(player.y +player.height < platforms.ycords[i] +(platforms.h/3)){
-                      player.y = platforms.ycords[i] - player.height;
+                    if(player.y +player.height < platforms.ycords[i]*bigH +(platforms.h/3)){
+                      player.y = platforms.ycords[i]*bigH - player.height;
                       player.jumping = false;
                       player.y_velocity = 0;
                     }
-                    else if(player.y > platforms.ycords[i] + (platforms.h/4)){
-                      player.y = platforms.ycords[i] + platforms.h;
+                    else if(player.y > platforms.ycords[i]*bigH + (platforms.h/4)){
+                      player.y = platforms.ycords[i]*bigH + platforms.h;
                       player.y_veolocity =0;
                     }
                     else{
                       // player.y = platforms.ycords[i] +platforms.h;
                       if(player.x + player.width < platforms.xcords[i] +(platforms.w/2))
-                        player.x = platforms.xcords[i] - platforms.w;
+                        player.x = platforms.xcords[i]* bigW - platforms.w;
                       else
-                        player.x = platforms.xcords[i] + platforms.w;
+                        player.x = platforms.xcords[i]* bigW + platforms.w;
                     }
 
                   }
@@ -152,8 +152,8 @@
           ycords:[0],
 
           setValues:function(x){
-            platforms.xcords = [0,  bigW/2, 0.2*bigW];
-            platforms.ycords = [x*2,bigH/2, 0.88*bigH];
+            platforms.xcords = [0,  0.32,.41, .63, .99, .99, .99]; //ratios multiplied by width later
+            platforms.ycords = [.2, 0.88,.65, .47, .74, .52, .31]; //ratios multiplied by height later
             platforms.w = x;
             platforms.h = x;
           },
@@ -161,7 +161,7 @@
           drawPlatforms:function(){
             context.fillStyle = "#000000";
             for(var i=0; i < platforms.xcords.length; i++){
-              context.fillRect(platforms.xcords[i], platforms.ycords[i], platforms.w, platforms.h);
+              context.fillRect(platforms.xcords[i] * bigW, platforms.ycords[i] *bigH, platforms.w, platforms.h);
             }
           }
         };
@@ -233,8 +233,39 @@
                 break;
               }
 
+            },
+
+            touchStartHandler:function(e){
+              e.preventDefault();
+              controller.up = true;
+            },
+
+            //touch controller(s)
+            touchMoveHandler:function(e) {
+              e.preventDefault();
+              controller.up = false;
+              var touchloc = e.targetTouches[0];
+
+              if(touchloc.pageX > player.x){
+                controller.right = true;
+              }else{
+                controller.left = true;
+              //keeps track of continuous touches, hopefully
+              //player.x = touchloc.pageX - context.canvas.offsetLeft - player.width/2;
+              // player.y = touchloc.pageY - context.canvas.offsetTop + player.height;
+
+              }
+            },
+
+            touchEndHandler:function(e){
+              e.preventDefault();
+              controller.up = false;
+              controller.right = false;
+              controller.left = false;
             }
         };
+
+
 
         //GENERIC COLLISION FUNCTION THAT I LOVE. Takes input of two objects and
         //returns true if they are touching
@@ -253,7 +284,7 @@
               player.y = 0;
               player.x_velocity =0;
               player.y_velocity=0;
-              player.jumping = false;
+              player.jumping = true;
               deaths ++;
         };
 
@@ -344,9 +375,9 @@
 
           //print current mouse position
           context.fillStyle = "#000000";
-          context.fillText(current_mouse_pos,10,20);
+          // context.fillText(current_mouse_pos,10,20);
           context.fillText("Use arrow keys to move, get to green to win", 120, 20);
-          context.fillText("Deaths:" + bigW, 120, 50);
+          context.fillText("Deaths:" + deaths, 120, 50);
 
           //draw instructions!
           // context.fillText("You have 5 lives, don't lose them all!", 400 - viewport.x,250);
@@ -370,6 +401,10 @@
         // tile_sheet.addEventListener("load", (event) => {
           window.addEventListener("keydown", controller.keyListener);
           window.addEventListener("keyup", controller.keyListener);
+          window.addEventListener("touchstart", controller.touchStartHandler, {passive: false});
+          window.addEventListener("touchmove", controller.touchMoveHandler, {passive: false});
+          window.addEventListener("touchend", controller.touchEndHandler, {passive: false});
+
           localStorage.setItem("HP", "5");
           loop();
         // });
