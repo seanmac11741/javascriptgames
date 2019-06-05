@@ -129,12 +129,12 @@
 
               // if(touchloc.pageX > 0 && touchloc.pageX < Lpaddle.w)
               if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Lpaddle.x, Lpaddle.y, Lpaddle.w, Lpaddle.h)){
+                           Lpaddle.x + Lpaddle.w, Lpaddle.y, Lpaddle.w, Lpaddle.h)){
                 controller.left = true;
                 console.log('left!');
               }
               else if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Rpaddle.x, Rpaddle.y, Rpaddle.w, Rpaddle.h)){
+                           Rpaddle.x + Rpaddle.w, Rpaddle.y, Rpaddle.w, Rpaddle.h)){
                 controller.right = true;
                 console.log('right!');
               }
