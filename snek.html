@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset = "utf-8">
+    <meta name = "template" content = "width=device_width">
+    <title>Snek</title>
+
+    <style>
+      *{margin:0; padding:0;}
+
+
+      html, body {height:100%; width:100%; align-content:space-around;
+                  background-color: #202830; color:#ffffff; display: grid;
+                justify-content:center; }
+
+      .button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 30px;
+            margin: 4px 2px;
+            cursor: pointer;
+          }
+
+          .button1 {width: 250px;}
+          .button2 {width: 50%; height: 200px;}
+          .button3 {width: 100%; height: 200px;}
+    </style>
+
+  </head>
+    <p>_________________________</p>
+    <p>_________________________</p>
+    <p><strong>Tip:</strong> Press the "Esc" key to exit full screen.</p>
+    <p>
+      <button class="button button3" onclick="full();" ontouchstart="full();">Go Fullscreen</button><br>
+    </p>
+
+  <body>
+      <canvas id="screen"></canvas>
+
+      <script type = "text/javascript">
+      //REMEMBER!!! core of any video game is this list, for every game loop:
+      //1. get input from user
+      //2. evaluate input
+      //3. display changes
+
+        //global vars can go here, this is the canvas that we write everything to
+
+        var context = document.querySelector("canvas").getContext("2d");
+        var current_mouse_pos = "0,0";
+        context.canvas.height = 700;
+        context.canvas.width = 1000 ;
+        var bigW = context.canvas.width;
+        var bigH = context.canvas.height;
+        var tenscale = bigH/10;
+        var hundscale = bigH/100;
+        var butnratio = 25/150;
+
+        //if you comment this out, sprite images look like shit
+        context.imageSmoothingEnabled = false;
+        context.font = "20px Arial";
+        var foods = 0;
+
+
+        function full() {
+          var canvas = document.getElementById("screen");
+          if(canvas.requestFullScreen)
+              canvas.requestFullScreen();
+          else if(canvas.webkitRequestFullScreen)
+              canvas.webkitRequestFullScreen();
+          else if(canvas.mozRequestFullScreen)
+              canvas.mozRequestFullScreen();
+
+            console.log('fullscreen!');
+        };
+
+
+
+
+        //CONTROLLER VARS AND FUNCTIONS
+        // var audio = new Audio('connor1.mp3');
+        var controller = {
+          left:false,
+          right:false,
+          up:false,
+          space:false,
+
+            //defines a listener for the keys that performs a custom event when the
+            //listener is triggered
+            keyListener:function(event){
+              //this var sets the key state to either 1: pushing a key or 2: not pushing a key
+              var key_state = (event.type == "keydown")?true:false;
+
+              switch(event.keyCode){
+                case 65: //left arrow key
+                  controller.left = key_state;
+                break;
+                case 87: //up arrow key
+                  controller.up = key_state;
+                break;
+                case 68: //right arrow key
+                  controller.right = key_state;
+                break;
+                case 37: //left arrow key
+                  controller.left = key_state;
+                break;
+                case 38: //up arrow key
+                  controller.up = key_state;
+                break;
+                case 39: //right arrow key
+                  controller.right = key_state;
+                break;
+                case 32: //space key
+                  controller.space = key_state;
+                break;
+              }
+
+            },
+
+            touchStartHandler:function(e){
+              e.preventDefault();
+              controller.up = true;
+
+              var touchloc = e.targetTouches[0];
+
+              // if(touchloc.pageX > 0 && touchloc.pageX < Lpaddle.w)
+              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
+                           Lpaddle.x, Lpaddle.y, Lpaddle.w, Lpaddle.h)){
+                controller.left = true;
+                console.log('left!');
+              }
+              else if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
+                           Rpaddle.x, Rpaddle.y, Rpaddle.w, Rpaddle.h)){
+                controller.right = true;
+                console.log('right!');
+              }
+            },
+
+            //touch controller(s)
+            touchMoveHandler:function(e) {
+              e.preventDefault();
+
+            },
+
+            touchEndHandler:function(e){
+              e.preventDefault();
+              controller.up = false;
+              controller.right = false;
+              controller.left = false;
+            }
+        };
+
+
+
+        //GENERIC COLLISION FUNCTION THAT I LOVE. Takes input of two objects and
+        //returns true if they are touching
+        collision = function(ax,ay,aw,ah,bx,by,bw,bh){
+            if(ax < bx+bw && ay < by+bh && bx < ax+aw && by < ay+ah){
+              return true;
+            }
+            else {
+              return false;
+            }
+        };
+
+        //pain function that hurts the snek. This will happen quite alot on level 6 lmao
+        pain = function(){
+          window.alert('Foods eaten before death: ' + foods);
+          snek.headx = gamecanv.x + gamecanv.w/2;
+          snek.heady = gamecanv.y + gamecanv.h/2;
+          snek.xvel =0;
+          snek.yvel =0;
+          snek.girth =0;
+          foods =0;
+        };
+
+
+        getMousePos = function(canvas, evt){
+          var rect = canvas.getBoundingClientRect();
+          var xmouse = Math.round(evt.clientX - rect.left);
+          var ymouse = Math.round(evt.clientY - rect.top);
+          return Math.round((xmouse/bigW)*100)/100 + "," + Math.round((ymouse/bigH)*100)/100; //returns ratio of x position
+        };
+
+
+
+          var gamecanv = {
+            x:0,
+            y:0,
+            w:0,
+            h:0,
+
+            updategamecanv:function(x, y, w, h){
+              gamecanv.x = x;
+              gamecanv.y = y;
+              gamecanv.w = w;
+              gamecanv.h = h;
+            }
+          };
+
+          var Lpaddle = {
+            x:0,
+            y:0,
+            w:0,
+            h:0,
+          };
+
+          var Rpaddle = {
+            x:0,
+            y:0,
+            w:0,
+            h:0,
+          };
+
+          //make an adversary that runs towards salads
+
+          var vegan ={
+            x:0,
+            y:0,
+            w:0,
+            h:0,
+            xvel:0,
+            yvel:0,
+            maxvel:0,
+
+            physics:function(){
+              vegan.x += vegan.xvel;
+              vegan.y += vegan.yvel;
+
+              vegan.maxvel = (2*gamecanv.h)/1000;
+
+              vegan.w = hundscale;
+              vegan.h = hundscale;
+            },
+
+            drawvegan:function(){
+              context.fillStyle = "#8c5635";
+              context.fillRect(vegan.x, vegan.y, vegan.w, vegan.h);
+            },
+
+            findsalad:function(){
+              if(salad.x > vegan.x){
+                vegan.xvel = vegan.maxvel;
+              }else if(salad.x < vegan.x){
+                vegan.xvel = -vegan.maxvel;
+              }
+
+              if(salad.y > vegan.y){
+                vegan.yvel = vegan.maxvel;
+              }else if(salad.y < vegan.y){
+                vegan.yvel = -vegan.maxvel;
+              }
+            }
+
+
+          };
+
+          var snek = {
+            headx:100,
+            heady:100,
+            w:10,
+            h:10,
+            xvel:0,
+            yvel:0,
+            maxvel:2,
+            girth:0,
+
+            updatevals:function(x){
+              snek.w = x + snek.girth;
+              snek.h = x + snek.girth;
+              snek.maxvel = (2*gamecanv.h)/600;
+            },
+
+            physics:function(){
+              snek.headx += snek.xvel;
+              snek.heady += snek.yvel;
+
+
+            },
+
+            drawsnek:function(){
+              context.fillStyle = "#ffffff";
+              context.fillRect(snek.headx, snek.heady, snek.w, snek.h);
+
+            },
+            eat:function(){
+              snek.girth += hundscale;
+              foods ++;
+
+              //if the snek is going to be off the screen after it eats, prevent that cuz it would suck to lose like that
+              if(snek.headx + snek.w + snek.girth > gamecanv.x + gamecanv.w){
+                console.log('bump snek left');
+                snek.headx -=hundscale;
+              }
+
+              if(snek.heady + snek.h + snek.girth > gamecanv.y + gamecanv.h){
+                console.log('bump snek up');
+                snek.heady -= hundscale;
+              }
+            }
+          };
+
+          var pizza = {
+            x:0,
+            y:0,
+            w:0,
+            h:0,
+
+            drawpizza:function(){
+              context.fillStyle="#e56269";
+              context.fillRect(pizza.x, pizza.y, pizza.w, pizza.h);
+            },
+
+            newpizza:function(){
+              var xmin = 0;
+              var ymin = 0;
+              var xmax = 0;
+              var ymax = 0;
+
+
+              pizza.w = hundscale;
+              pizza.h=hundscale;
+
+              pizza.x = gamecanv.x + Math.floor(Math.random() * (gamecanv.w - pizza.w));
+              pizza.y = gamecanv.y + Math.floor(Math.random() * (gamecanv.h - pizza.h));
+
+              if(pizza.x + pizza.w > gamecanv.x + gamecanv.w || pizza.y +pizza.h > gamecanv.y + gamecanv.h){
+                pizza.newpizza();
+              }
+
+              if(collision(pizza.x, pizza.y, pizza.w, pizza.h,snek.headx, snek.heady, snek.w, snek.h)){
+                 pizza.newpizza();
+              }
+
+              if(Math.floor(Math.random() *10) >5){
+                salad.newsalad();
+              }
+
+            }
+          };
+
+          var salad = {
+            x:0,
+            y:0,
+            w:0,
+            h:0,
+
+            drawsalad:function(){
+              context.fillStyle="#19c43b";
+              context.fillRect(salad.x, salad.y, salad.w, salad.h);
+            },
+
+            eat:function(){
+              if(snek.girth > hundscale){
+                snek.girth -= hundscale;
+                foods ++;
+              }
+
+              //moves salad off screen
+              salad.y = gamecanv.y + gamecanv.h;
+
+              if(Math.floor(Math.random() *10) >5){
+                salad.newsalad();
+              }
+            },
+
+            newsalad:function(){
+              var xmin = 0;
+              var ymin = 0;
+              var xmax = 0;
+              var ymax = 0;
+
+              salad.w = hundscale;
+              salad.h=hundscale;
+
+              salad.x = gamecanv.x + Math.floor(Math.random() * (gamecanv.w - salad.w));
+              salad.y = gamecanv.y + Math.floor(Math.random() * (gamecanv.h - salad.h));
+
+              if(salad.x + salad.w > gamecanv.x + gamecanv.w || salad.y +salad.h > gamecanv.y + gamecanv.h){
+                salad.newsalad();
+              }
+
+              if(collision(salad.x, salad.y, salad.w, salad.h,
+                           snek.headx, snek.heady, snek.w, snek.h)){
+                             salad.newsalad();
+                           }
+
+            }
+          };
+
+// _________________________________________________________________________________________________________________
+//          GAME LOOP BEGIN
+//_______________________________________________________________________________________________________________
+        function loop(){
+
+          //this scales the canvas so that Width = height *1.5
+          if(window.innerWidth > window.innerHeight*1.5){
+            context.canvas.width = window.innerHeight*1.5 -10;
+            context.canvas.height = window.innerHeight -10;
+          }else {
+            context.canvas.height = window.innerWidth/1.5 -10;
+            context.canvas.width = window.innerWidth -10;
+          }
+
+          bigH = context.canvas.height;
+          bigW = context.canvas.width;
+          tenscale = bigH/10;
+          hundscale = bigH/100;
+
+          context.font = "20px Arial";
+
+
+          //draw background, make the resolution based off of the browser window
+          context.fillStyle = "#2e4263";
+          context.fillRect(0,0,bigW,bigH);
+
+          //make the controller buttons on each side
+
+          context.fillStyle = "#53cc63";
+          // left paddle
+          Lpaddle.x = 0;
+          Lpaddle.y = 0;
+          Lpaddle.w = bigW*butnratio;
+          Lpaddle.h = bigH;
+
+          context.fillRect(0,0, Lpaddle.w, Lpaddle.h);
+          // right paddle
+          Rpaddle.x = bigW - bigW*butnratio;
+          Rpaddle.y = 0;
+          Rpaddle.w = bigW*butnratio;
+          Rpaddle.h = bigH;
+
+          context.fillRect(Rpaddle.x, Rpaddle.y, Rpaddle.w, Rpaddle.h);
+
+          //new gamecanv between paddles
+
+          context.fillStyle = "#2e4263";
+          gamecanv.updategamecanv(bigW*butnratio, 0, bigW - bigW*butnratio*2, bigH);
+          context.fillRect(gamecanv.x, gamecanv.y, gamecanv.w, gamecanv.h);
+
+          //initial state until user clicks something
+          if(snek.xvel ==0 && snek.yvel==0){
+            snek.headx = gamecanv.x + gamecanv.w/2;
+            snek.heady = gamecanv.y + gamecanv.h/2;
+            vegan.x = gamecanv.x;
+            vegan.y = gamecanv.y;
+            context.fillStyle = "#000000";
+            context.fillText("Use big green buttons or arrow keys to turn", gamecanv.x, gamecanv.y+20);
+            context.fillText("Eat pizza to grow", gamecanv.x, gamecanv.y+40);
+            context.fillText("Eat salad to shrink", gamecanv.x, gamecanv.y+60);
+            context.fillText("Watch out for the vegan, he eats salads", gamecanv.x, gamecanv.y+80);
+          }else {
+            context.fillStyle = "#000000";
+            context.fillText("Foods eaten: " + foods, gamecanv.x, gamecanv.y+20);
+          }
+
+          //starts the snek moving
+          if(snek.xvel == 0 && snek.yvel == 0 && (controller.right==true || controller.left==true)){
+            console.log('doink!');
+            snek.xvel =snek.maxvel;
+            pizza.newpizza();
+          }
+
+
+           //snek movement
+            if(snek.yvel == 0 && snek.xvel>0){
+              //moving right
+              if(controller.left){
+                snek.xvel = 0;
+                snek.yvel = -snek.maxvel;
+                controller.left =false;
+              }else if(controller.right){
+                snek.xvel = 0;
+                snek.yvel = snek.maxvel;
+                controller.right =false;
+              }
+            }
+            else if(snek.yvel == 0 && snek.xvel<0){
+              //moving left
+              if(controller.left){
+                snek.xvel = 0;
+                snek.yvel = snek.maxvel;
+                controller.left =false;
+              }else if(controller.right){
+                snek.xvel = 0;
+                snek.yvel = -snek.maxvel;
+                controller.right =false;
+              }
+            }
+            else if(snek.xvel==0 && snek.yvel<0){
+              //moving up
+              if(controller.left){
+                snek.yvel =0;
+                snek.xvel = -snek.maxvel;
+                controller.left =false;
+              }else if(controller.right){
+                snek.yvel =0;
+                snek.xvel = snek.maxvel;
+                controller.right =false;
+              }
+            }
+            else if(snek.xvel==0 && snek.yvel>0){
+              //moving down, make it go right
+              if(controller.left){
+                snek.yvel=0;
+                snek.xvel=snek.maxvel;
+                controller.left =false;
+              }else if(controller.right){
+                snek.yvel=0;
+                snek.xvel= -snek.maxvel;
+                controller.right =false;
+              }
+            }
+
+
+/* ----------------------------COLLISION SECTION -------------------------------- */
+
+        //collision with head and left of screen
+        if(snek.headx < gamecanv.x || snek.headx + snek.w > gamecanv.x +gamecanv.w){
+          pain();
+        }
+
+        if(snek.heady < gamecanv.y || snek.heady + snek.h > gamecanv.y+gamecanv.h){
+          pain();
+        }
+
+        if(collision(snek.headx, snek.heady, snek.w, snek.h,
+                     pizza.x, pizza.y, pizza.w, pizza.h)){
+                       snek.eat();
+                       pizza.newpizza();
+                     }
+
+        if(collision(snek.headx, snek.heady, snek.w, snek.h,
+                    salad.x, salad.y, salad.w, salad.h)){
+                      salad.eat();
+                     }
+        if(collision(snek.headx, snek.heady, snek.w, snek.h,
+                     vegan.x, vegan.y, vegan.w, vegan.h)){
+                       pain();
+                     }
+
+
+
+/* ---------------------------- testing variables, remove eventually--------------- */
+
+          //var current_cell = "Viewport.x "+ Math.round(viewport.x,2);
+          //context.fillText(current_cell, scaled_size,scaled_size+10);
+
+          //print current mouse position
+          // context.fillText(current_mouse_pos,10,20);
+
+
+          snek.updatevals(hundscale);
+          snek.physics();
+          snek.drawsnek();
+
+          salad.drawsalad();
+          pizza.drawpizza();
+
+          vegan.physics();
+          vegan.drawvegan();
+          vegan.findsalad();
+
+          window.requestAnimationFrame(loop);
+          //main loop end
+        };
+
+        //adding an event listener to the tile_sheet object. takes an event and then
+        //executes an action => defines custom event right here
+        // tile_sheet.addEventListener("load", (event) => {
+          window.addEventListener("keydown", controller.keyListener);
+          window.addEventListener("keyup", controller.keyListener);
+          window.addEventListener("touchstart", controller.touchStartHandler, {passive: false});
+          window.addEventListener("touchmove", controller.touchMoveHandler, {passive: false});
+          window.addEventListener("touchend", controller.touchEndHandler, {passive: false});
+
+          localStorage.setItem("HP", "5");
+          loop();
+        // });
+        //BEGIN OF ACTUAL CODE. It runs this first and the listener does things
+        //once the assests are loaded
+        // tile_sheet.src = "ship.png";
+      </script>
+
+  </body>
+</html>
