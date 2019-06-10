@@ -137,17 +137,17 @@
                 console.log('left!');
               }
               if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Rpaddle.x, Rpaddle.y, Rpaddle.w, Rpaddle.h)){
+                           Rpaddle.x + Rpaddle.w, Rpaddle.y, Rpaddle.w, Rpaddle.h)){
                 controller.right = true;
                 console.log('right!');
               }
               if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Dpaddle.x, Dpaddle.y, Dpaddle.w, Dpaddle.h)){
+                           Dpaddle.x + Dpaddle.w, Dpaddle.y, Dpaddle.w, Dpaddle.h)){
                 controller.down = true;
                 console.log('down!');
               }
               if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Upaddle.x, Upaddle.y, Upaddle.w, Upaddle.h)){
+                           Upaddle.x +Upaddle.w, Upaddle.y, Upaddle.w, Upaddle.h)){
                 controller.up = true;
                 console.log('up!');
               }
