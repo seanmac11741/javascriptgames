@@ -47,6 +47,7 @@
       //1. get input from user
       //2. evaluate input
       //3. display changes
+      window.scrollTo(0,document.body.scrollHeight);
 
         //global vars can go here, this is the canvas that we write everything to
 
@@ -59,6 +60,7 @@
         var tenscale = bigH/10;
         var hundscale = bigH/100;
         var butnratio = 25/150;
+        pause = true;
 
         //if you comment this out, sprite images look like shit
         context.imageSmoothingEnabled = false;
@@ -87,7 +89,7 @@
           left:false,
           right:false,
           up:false,
-          space:false,
+          down:false,
 
             //defines a listener for the keys that performs a custom event when the
             //listener is triggered
@@ -114,8 +116,11 @@
                 case 39: //right arrow key
                   controller.right = key_state;
                 break;
-                case 32: //space key
-                  controller.space = key_state;
+                case 83: //down
+                  controller.down = key_state;
+                break;
+                case 40: //down arrow key
+                  controller.down = key_state;
                 break;
               }
 
@@ -123,20 +128,28 @@
 
             touchStartHandler:function(e){
               e.preventDefault();
-              controller.up = true;
 
               var touchloc = e.targetTouches[0];
 
               // if(touchloc.pageX > 0 && touchloc.pageX < Lpaddle.w)
-              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Lpaddle.x + Lpaddle.w, Lpaddle.y, Lpaddle.w, Lpaddle.h)){
+              if(touchloc.pageX < Lpaddle.x + Lpaddle.w && touchloc.pageY< Lpaddle.y + Lpaddle.h){
                 controller.left = true;
                 console.log('left!');
               }
-              else if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Rpaddle.x + Rpaddle.w, Rpaddle.y, Rpaddle.w, Rpaddle.h)){
+              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
+                           Rpaddle.x, Rpaddle.y, Rpaddle.w, Rpaddle.h)){
                 controller.right = true;
                 console.log('right!');
+              }
+              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
+                           Dpaddle.x, Dpaddle.y, Dpaddle.w, Dpaddle.h)){
+                controller.down = true;
+                console.log('down!');
+              }
+              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
+                           Upaddle.x, Upaddle.y, Upaddle.w, Upaddle.h)){
+                controller.up = true;
+                console.log('up!');
               }
             },
 
@@ -151,6 +164,7 @@
               controller.up = false;
               controller.right = false;
               controller.left = false;
+              controller.down = false;
             }
         };
 
@@ -170,12 +184,19 @@
         //pain function that hurts the snek. This will happen quite alot on level 6 lmao
         pain = function(){
           window.alert('Foods eaten before death: ' + foods);
+
           snek.headx = gamecanv.x + gamecanv.w/2;
           snek.heady = gamecanv.y + gamecanv.h/2;
           snek.xvel =0;
           snek.yvel =0;
           snek.girth =0;
+          controller.up = false;
+          controller.down = false;
+          controller.left = false;
+          controller.right = false;
           foods =0;
+          pause = true;
+
         };
 
 
@@ -207,6 +228,19 @@
             y:0,
             w:0,
             h:0,
+
+            draw:function(){
+
+              context.fillStyle = "#53cc63";
+              // left paddle
+              Lpaddle.x = 0;
+              Lpaddle.y = 0;
+              Lpaddle.w = bigW*butnratio;
+              Lpaddle.h = bigH/2 - hundscale;
+              context.fillRect(Lpaddle.x, Lpaddle.y, Lpaddle.w, Lpaddle.h);
+              context.fillStyle = "#ffffff";
+              context.fillText("Left", Lpaddle.w/4, Lpaddle.h/2);
+            },
           };
 
           var Rpaddle = {
@@ -214,6 +248,58 @@
             y:0,
             w:0,
             h:0,
+
+            draw:function(){
+              // right paddle
+              context.fillStyle = "#53cc63";
+              Rpaddle.x = bigW - bigW*butnratio;
+              Rpaddle.y = 0;
+              Rpaddle.w = bigW*butnratio;
+              Rpaddle.h = bigH/2- hundscale;
+              context.fillRect(Rpaddle.x, Rpaddle.y, Rpaddle.w, Rpaddle.h);
+
+              context.fillStyle = "#ffffff";
+              context.fillText("Right", Rpaddle.w/4 + Rpaddle.x, Rpaddle.h/2);
+            }
+          };
+
+          var Dpaddle = {
+            x:0,
+            y:0,
+            w:0,
+            h:0,
+
+            draw:function(){
+              context.fillStyle = "#53cc63";
+              // left paddle
+              Dpaddle.x = 0;
+              Dpaddle.y = bigH/2;
+              Dpaddle.w = bigW*butnratio;
+              Dpaddle.h = bigH/2;
+              context.fillRect(Dpaddle.x, Dpaddle.y, Dpaddle.w, Dpaddle.h);
+
+              context.fillStyle = "#ffffff";
+              context.fillText("Down", Dpaddle.w/4, Dpaddle.h/2+Dpaddle.y);
+            }
+          };
+
+          var Upaddle = {
+            x:0,
+            y:0,
+            w:0,
+            h:0,
+
+            draw:function(){
+              context.fillStyle = "#53cc63";
+              Upaddle.x = bigW - bigW*butnratio;
+              Upaddle.y = bigH/2;
+              Upaddle.w = bigW*butnratio;
+              Upaddle.h = bigH/2;
+              context.fillRect(Upaddle.x, Upaddle.y, Upaddle.w, Upaddle.h);
+
+              context.fillStyle = "#ffffff";
+              context.fillText("Up", Upaddle.w/4+ Upaddle.x, Upaddle.h/2+Upaddle.y);
+            }
           };
 
           //make an adversary that runs towards salads
@@ -226,6 +312,7 @@
             xvel:0,
             yvel:0,
             maxvel:0,
+            girth:0,
 
             physics:function(){
               vegan.x += vegan.xvel;
@@ -233,8 +320,8 @@
 
               vegan.maxvel = (2*gamecanv.h)/1000;
 
-              vegan.w = hundscale;
-              vegan.h = hundscale;
+              vegan.w = hundscale*2 + vegan.girth;
+              vegan.h = hundscale*2 + vegan.girth;
             },
 
             drawvegan:function(){
@@ -291,6 +378,7 @@
               snek.girth += hundscale;
               foods ++;
 
+
               //if the snek is going to be off the screen after it eats, prevent that cuz it would suck to lose like that
               if(snek.headx + snek.w + snek.girth > gamecanv.x + gamecanv.w){
                 console.log('bump snek left');
@@ -336,7 +424,7 @@
                  pizza.newpizza();
               }
 
-              if(Math.floor(Math.random() *10) >5){
+              if(Math.floor(Math.random() *10) >2){
                 salad.newsalad();
               }
 
@@ -363,7 +451,7 @@
               //moves salad off screen
               salad.y = gamecanv.y + gamecanv.h;
 
-              if(Math.floor(Math.random() *10) >5){
+              if(Math.floor(Math.random() *10) >2){
                 salad.newsalad();
               }
             },
@@ -420,21 +508,10 @@
 
           //make the controller buttons on each side
 
-          context.fillStyle = "#53cc63";
-          // left paddle
-          Lpaddle.x = 0;
-          Lpaddle.y = 0;
-          Lpaddle.w = bigW*butnratio;
-          Lpaddle.h = bigH;
-
-          context.fillRect(0,0, Lpaddle.w, Lpaddle.h);
-          // right paddle
-          Rpaddle.x = bigW - bigW*butnratio;
-          Rpaddle.y = 0;
-          Rpaddle.w = bigW*butnratio;
-          Rpaddle.h = bigH;
-
-          context.fillRect(Rpaddle.x, Rpaddle.y, Rpaddle.w, Rpaddle.h);
+          Lpaddle.draw();
+          Rpaddle.draw();
+          Dpaddle.draw();
+          Upaddle.draw();
 
           //new gamecanv between paddles
 
@@ -443,11 +520,12 @@
           context.fillRect(gamecanv.x, gamecanv.y, gamecanv.w, gamecanv.h);
 
           //initial state until user clicks something
-          if(snek.xvel ==0 && snek.yvel==0){
+          if(pause){
             snek.headx = gamecanv.x + gamecanv.w/2;
             snek.heady = gamecanv.y + gamecanv.h/2;
             vegan.x = gamecanv.x;
-            vegan.y = gamecanv.y;
+            vegan.y = gamecanv.y + gamecanv.w/2;
+            vegan.girth =0;
             context.fillStyle = "#000000";
             context.fillText("Use big green buttons or arrow keys to turn", gamecanv.x, gamecanv.y+20);
             context.fillText("Eat pizza to grow", gamecanv.x, gamecanv.y+40);
@@ -458,85 +536,71 @@
             context.fillText("Foods eaten: " + foods, gamecanv.x, gamecanv.y+20);
           }
 
-          //starts the snek moving
-          if(snek.xvel == 0 && snek.yvel == 0 && (controller.right==true || controller.left==true)){
-            console.log('doink!');
-            snek.xvel =snek.maxvel;
-            pizza.newpizza();
+          if(controller.right || controller.left || controller.up || controller.down){
+            if(pause){
+              pizza.newpizza();
+            }
+            pause = false;
           }
 
-
-           //snek movement
-            if(snek.yvel == 0 && snek.xvel>0){
-              //moving right
-              if(controller.left){
-                snek.xvel = 0;
-                snek.yvel = -snek.maxvel;
-                controller.left =false;
-              }else if(controller.right){
-                snek.xvel = 0;
-                snek.yvel = snek.maxvel;
-                controller.right =false;
-              }
-            }
-            else if(snek.yvel == 0 && snek.xvel<0){
-              //moving left
-              if(controller.left){
-                snek.xvel = 0;
-                snek.yvel = snek.maxvel;
-                controller.left =false;
-              }else if(controller.right){
-                snek.xvel = 0;
-                snek.yvel = -snek.maxvel;
-                controller.right =false;
-              }
-            }
-            else if(snek.xvel==0 && snek.yvel<0){
-              //moving up
-              if(controller.left){
-                snek.yvel =0;
-                snek.xvel = -snek.maxvel;
-                controller.left =false;
-              }else if(controller.right){
-                snek.yvel =0;
-                snek.xvel = snek.maxvel;
-                controller.right =false;
-              }
-            }
-            else if(snek.xvel==0 && snek.yvel>0){
-              //moving down, make it go right
-              if(controller.left){
-                snek.yvel=0;
-                snek.xvel=snek.maxvel;
-                controller.left =false;
-              }else if(controller.right){
-                snek.yvel=0;
-                snek.xvel= -snek.maxvel;
-                controller.right =false;
-              }
-            }
+          //easier snek movement
+          if(controller.right){
+            snek.xvel = snek.maxvel;
+          }
+          if(controller.left){
+            snek.xvel = -snek.maxvel;
+          }
+          if(controller.up){
+            snek.yvel = -snek.maxvel;
+          }
+          if(controller.down){
+            snek.yvel = snek.maxvel;
+          }
+          if(!controller.right && !controller.left){
+            snek.xvel=0;
+          }
+          if(!controller.up && !controller.down){
+            snek.yvel=0;
+          }
+          if(!controller.right && !controller.left && !controller.up && !controller.down){
+            snek.xvel = 0.00000001;
+            snek.yvel = 0.00000001;
+          }
 
 
 /* ----------------------------COLLISION SECTION -------------------------------- */
 
         //collision with head and left of screen
-        if(snek.headx < gamecanv.x || snek.headx + snek.w > gamecanv.x +gamecanv.w){
-          pain();
+        if(snek.headx < gamecanv.x){
+          snek.headx = gamecanv.x;
+        }
+        if(snek.headx + snek.w > gamecanv.x +gamecanv.w){
+          snek.headx = gamecanv.x +gamecanv.w - snek.w;
         }
 
-        if(snek.heady < gamecanv.y || snek.heady + snek.h > gamecanv.y+gamecanv.h){
-          pain();
+        if(snek.heady < gamecanv.y){
+          snek.heady = gamecanv.y;
+        }
+        if(snek.heady + snek.h > gamecanv.y+gamecanv.h){
+          snek.heady = gamecanv.y +gamecanv.h - snek.h;
         }
 
         if(collision(snek.headx, snek.heady, snek.w, snek.h,
                      pizza.x, pizza.y, pizza.w, pizza.h)){
                        snek.eat();
                        pizza.newpizza();
+                       if(foods%10 ==0 && foods != 0){
+                         vegan.girth += hundscale;
+                       }
                      }
 
         if(collision(snek.headx, snek.heady, snek.w, snek.h,
                     salad.x, salad.y, salad.w, salad.h)){
                       salad.eat();
+
+                      if(foods%10 ==0 && foods != 0){
+                        vegan.girth += hundscale;
+                      }
                      }
         if(collision(snek.headx, snek.heady, snek.w, snek.h,
                      vegan.x, vegan.y, vegan.w, vegan.h)){
