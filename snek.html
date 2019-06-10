@@ -132,7 +132,8 @@
               var touchloc = e.targetTouches[0];
 
               // if(touchloc.pageX > 0 && touchloc.pageX < Lpaddle.w)
-              if(touchloc.pageX < Lpaddle.x + Lpaddle.w && touchloc.pageY< Lpaddle.y + Lpaddle.h){
+              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
+                           Lpaddle.x + Lpaddle.w, Lpaddle.h)){
                 controller.left = true;
                 console.log('left!');
               }
