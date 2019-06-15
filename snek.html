@@ -132,11 +132,7 @@
               var touchloc = e.targetTouches[0];
 
               // if(touchloc.pageX > 0 && touchloc.pageX < Lpaddle.w)
-              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Lpaddle.x, Lpaddle.h)){
-                controller.left = true;
-                console.log('left!');
-              }
+
               if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
                            Rpaddle.x + Rpaddle.w, Rpaddle.y, Rpaddle.w, Rpaddle.h)){
                 controller.right = true;
@@ -152,6 +148,17 @@
                 controller.up = true;
                 console.log('up!');
               }
+              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
+                           Lpaddle.x +Lpaddle.w, Lpaddle.y, Lpaddle.w, Lpaddle.h)){
+                controller.left = true;
+                console.log('left!');
+              }
+
+              //multi touch stuff
+              if(e.targetTouches.length > 1){
+                window.alert('ahhhhhh');
+              }
+
             },
 
             //touch controller(s)
