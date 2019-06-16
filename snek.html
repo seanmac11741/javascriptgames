@@ -154,33 +154,9 @@
 
               var touchloc = e.targetTouches[0];
 
-<<<<<<< HEAD
                 //todo add all the logic to move player towards finger
 
                 touchControls(touchloc);
-=======
-              // if(touchloc.pageX > 0 && touchloc.pageX < Lpaddle.w)
-              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Lpaddle.x + Lpaddle.w, Lpaddle.y, Lpaddle.w, Lpaddle.h)){
-                controller.left = true;
-                console.log('left!');
-              }
-              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Rpaddle.x + Rpaddle.w, Rpaddle.y, Rpaddle.w, Rpaddle.h)){
-                controller.right = true;
-                console.log('right!');
-              }
-              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Dpaddle.x + Dpaddle.w, Dpaddle.y, Dpaddle.w, Dpaddle.h)){
-                controller.down = true;
-                console.log('down!');
-              }
-              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Upaddle.x +Upaddle.w, Upaddle.y, Upaddle.w, Upaddle.h)){
-                controller.up = true;
-                console.log('up!');
-              }
->>>>>>> 042fdf7692f2cd5c3b2c67569fdac3fb93b8df4c
             },
 
             //touch controller(s)
