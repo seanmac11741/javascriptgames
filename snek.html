@@ -80,7 +80,30 @@
             console.log('fullscreen!');
         };
 
+        function touchControls(t){
+          if(t.pageX - context.canvas.offsetLeft < snek.headx){
+            controller.left = true;
+            controller.right = false;
+            console.log('Left!');
+          }
+          if(t.pageX - context.canvas.offsetLeft > snek.headx){
+            controller.right = true;
+            controller.left = false;
+            console.log('right!');
+          }
 
+          if(t.pageY -context.canvas.offsetTop < snek.heady){
+            controller.up = true;
+            controller.down = false;
+            console.log('up!');
+          }
+
+          if(t.pageY -context.canvas.offsetTop > snek.heady){
+            controller.down = true;
+            controller.up = false;
+            console.log('down!');
+          }
+        }
 
 
         //CONTROLLER VARS AND FUNCTIONS
@@ -131,39 +154,17 @@
 
               var touchloc = e.targetTouches[0];
 
-              // if(touchloc.pageX > 0 && touchloc.pageX < Lpaddle.w)
+                //todo add all the logic to move player towards finger
 
-              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Rpaddle.x + Rpaddle.w, Rpaddle.y, Rpaddle.w, Rpaddle.h)){
-                controller.right = true;
-                console.log('right!');
-              }
-              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Dpaddle.x + Dpaddle.w, Dpaddle.y, Dpaddle.w, Dpaddle.h)){
-                controller.down = true;
-                console.log('down!');
-              }
-              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Upaddle.x +Upaddle.w, Upaddle.y, Upaddle.w, Upaddle.h)){
-                controller.up = true;
-                console.log('up!');
-              }
-              if(collision(touchloc.pageX, touchloc.pageY, 10, 10,
-                           Lpaddle.x +Lpaddle.w, Lpaddle.y, Lpaddle.w, Lpaddle.h)){
-                controller.left = true;
-                console.log('left!');
-              }
-
-              //multi touch stuff
-              if(e.targetTouches.length > 1){
-                window.alert('ahhhhhh');
-              }
-
+                touchControls(touchloc);
             },
 
             //touch controller(s)
             touchMoveHandler:function(e) {
               e.preventDefault();
+              var touchlocend = e.targetTouches.length;
+              var touchloc = e.targetTouches[touchlocend-1];
+              touchControls(touchloc);
 
             },
 
@@ -228,85 +229,6 @@
               gamecanv.y = y;
               gamecanv.w = w;
               gamecanv.h = h;
-            }
-          };
-
-          var Lpaddle = {
-            x:0,
-            y:0,
-            w:0,
-            h:0,
-
-            draw:function(){
-
-              context.fillStyle = "#53cc63";
-              // left paddle
-              Lpaddle.x = 0;
-              Lpaddle.y = 0;
-              Lpaddle.w = bigW*butnratio;
-              Lpaddle.h = bigH/2 - hundscale;
-              context.fillRect(Lpaddle.x, Lpaddle.y, Lpaddle.w, Lpaddle.h);
-              context.fillStyle = "#ffffff";
-              context.fillText("Left", Lpaddle.w/4, Lpaddle.h/2);
-            },
-          };
-
-          var Rpaddle = {
-            x:0,
-            y:0,
-            w:0,
-            h:0,
-
-            draw:function(){
-              // right paddle
-              context.fillStyle = "#53cc63";
-              Rpaddle.x = bigW - bigW*butnratio;
-              Rpaddle.y = 0;
-              Rpaddle.w = bigW*butnratio;
-              Rpaddle.h = bigH/2- hundscale;
-              context.fillRect(Rpaddle.x, Rpaddle.y, Rpaddle.w, Rpaddle.h);
-
-              context.fillStyle = "#ffffff";
-              context.fillText("Right", Rpaddle.w/4 + Rpaddle.x, Rpaddle.h/2);
-            }
-          };
-
-          var Dpaddle = {
-            x:0,
-            y:0,
-            w:0,
-            h:0,
-
-            draw:function(){
-              context.fillStyle = "#53cc63";
-              // left paddle
-              Dpaddle.x = 0;
-              Dpaddle.y = bigH/2;
-              Dpaddle.w = bigW*butnratio;
-              Dpaddle.h = bigH/2;
-              context.fillRect(Dpaddle.x, Dpaddle.y, Dpaddle.w, Dpaddle.h);
-
-              context.fillStyle = "#ffffff";
-              context.fillText("Down", Dpaddle.w/4, Dpaddle.h/2+Dpaddle.y);
-            }
-          };
-
-          var Upaddle = {
-            x:0,
-            y:0,
-            w:0,
-            h:0,
-
-            draw:function(){
-              context.fillStyle = "#53cc63";
-              Upaddle.x = bigW - bigW*butnratio;
-              Upaddle.y = bigH/2;
-              Upaddle.w = bigW*butnratio;
-              Upaddle.h = bigH/2;
-              context.fillRect(Upaddle.x, Upaddle.y, Upaddle.w, Upaddle.h);
-
-              context.fillStyle = "#ffffff";
-              context.fillText("Up", Upaddle.w/4+ Upaddle.x, Upaddle.h/2+Upaddle.y);
             }
           };
 
@@ -513,13 +435,6 @@
           //draw background, make the resolution based off of the browser window
           context.fillStyle = "#2e4263";
           context.fillRect(0,0,bigW,bigH);
-
-          //make the controller buttons on each side
-
-          Lpaddle.draw();
-          Rpaddle.draw();
-          Dpaddle.draw();
-          Upaddle.draw();
 
           //new gamecanv between paddles
 
