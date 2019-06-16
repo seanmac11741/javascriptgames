@@ -61,6 +61,8 @@
         var hundscale = bigH/100;
         var butnratio = 25/150;
         pause = true;
+        var lasttouchloc = [];
+        var tester = "start";
 
         //if you comment this out, sprite images look like shit
         context.imageSmoothingEnabled = false;
@@ -81,28 +83,9 @@
         };
 
         function touchControls(t){
-          if(t.pageX - context.canvas.offsetLeft < snek.headx){
-            controller.left = true;
-            controller.right = false;
-            console.log('Left!');
-          }
-          if(t.pageX - context.canvas.offsetLeft > snek.headx){
-            controller.right = true;
-            controller.left = false;
-            console.log('right!');
-          }
 
-          if(t.pageY -context.canvas.offsetTop < snek.heady){
-            controller.up = true;
-            controller.down = false;
-            console.log('up!');
-          }
 
-          if(t.pageY -context.canvas.offsetTop > snek.heady){
-            controller.down = true;
-            controller.up = false;
-            console.log('down!');
-          }
+          lasttouchloc = [t.pageX - context.canvas.offsetLeft, t.pageY - context.canvas.offsetTop];
         }
 
 
@@ -154,8 +137,6 @@
 
               var touchloc = e.targetTouches[0];
 
-                //todo add all the logic to move player towards finger
-
                 touchControls(touchloc);
             },
 
@@ -170,10 +151,7 @@
 
             touchEndHandler:function(e){
               e.preventDefault();
-              controller.up = false;
-              controller.right = false;
-              controller.left = false;
-              controller.down = false;
+              console.log('touchend called!')
             }
         };
 
@@ -204,6 +182,7 @@
           controller.left = false;
           controller.right = false;
           foods =0;
+          lasttouchloc = [];
           pause = true;
 
         };
@@ -297,6 +276,41 @@
               snek.heady += snek.yvel;
 
 
+              //controller check to send snek to last known touch
+              if(lasttouchloc.length>1){
+                var tx = lasttouchloc[0];
+                var ty = lasttouchloc[1];
+
+                //remove later!
+                // tester = "xdist: " + (Math.round(Math.abs(tx-snek.headx))) +
+                //         "ydist: " + (Math.round(Math.abs(ty-snek.heady)));
+
+                if((Math.round(Math.abs(tx-(snek.headx + snek.w/2)))) > 5){
+                    if(tx > snek.headx + snek.w/2){
+                      controller.right = true;
+                    } else{ controller.right = false;}
+
+                    if(tx < snek.headx + snek.w/2){
+                      controller.left = true;
+                    } else {controller.left = false;}
+                } else{
+                  controller.right = false;
+                  controller.left = false;
+                }
+
+                if((Math.round(Math.abs(ty-(snek.heady + snek.h/2)))) > 5){
+                  if(ty > snek.heady + snek.h/2){
+                    controller.down = true;
+                  } else {controller.down = false;}
+
+                  if(ty < snek.heady + snek.h/2){
+                    controller.up = true;
+                  } else {controller.up = false;}
+                } else {
+                  controller.up = false;
+                  controller.down = false;
+                }
+              }
             },
 
             drawsnek:function(){
@@ -309,16 +323,6 @@
               foods ++;
 
 
-              //if the snek is going to be off the screen after it eats, prevent that cuz it would suck to lose like that
-              if(snek.headx + snek.w + snek.girth > gamecanv.x + gamecanv.w){
-                console.log('bump snek left');
-                snek.headx -=hundscale;
-              }
-
-              if(snek.heady + snek.h + snek.girth > gamecanv.y + gamecanv.h){
-                console.log('bump snek up');
-                snek.heady -= hundscale;
-              }
             }
           };
 
@@ -439,7 +443,7 @@
           //new gamecanv between paddles
 
           context.fillStyle = "#2e4263";
-          gamecanv.updategamecanv(bigW*butnratio, 0, bigW - bigW*butnratio*2, bigH);
+          gamecanv.updategamecanv(0, 0, bigW, bigH);
           context.fillRect(gamecanv.x, gamecanv.y, gamecanv.w, gamecanv.h);
 
           //initial state until user clicks something
@@ -450,13 +454,14 @@
             vegan.y = gamecanv.y + gamecanv.w/2;
             vegan.girth =0;
             context.fillStyle = "#000000";
-            context.fillText("Use big green buttons or arrow keys to turn", gamecanv.x, gamecanv.y+20);
-            context.fillText("Eat pizza to grow", gamecanv.x, gamecanv.y+40);
-            context.fillText("Eat salad to shrink", gamecanv.x, gamecanv.y+60);
-            context.fillText("Watch out for the vegan, he eats salads", gamecanv.x, gamecanv.y+80);
+            context.fillText("Eat pizza to grow", gamecanv.x + gamecanv.w/4, gamecanv.y+40);
+            context.fillText("Eat salad to shrink", gamecanv.x + gamecanv.w/4, gamecanv.y+60);
+            context.fillText("Watch out for the vegan, he eats salads", gamecanv.x + gamecanv.w/4, gamecanv.y+80);
+            context.fillText("You get points for each piece of food you eat", gamecanv.x + gamecanv.w/4, gamecanv.y+100);
           }else {
             context.fillStyle = "#000000";
             context.fillText("Foods eaten: " + foods, gamecanv.x, gamecanv.y+20);
+            // context.fillText(tester, gamecanv.x, gamecanv.y + 40);
           }
 
           if(controller.right || controller.left || controller.up || controller.down){
