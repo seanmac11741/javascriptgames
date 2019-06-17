@@ -63,6 +63,7 @@
         pause = true;
         var lasttouchloc = [];
         var tester = "start";
+        var spritesize = 64;
 
         //if you comment this out, sprite images look like shit
         context.imageSmoothingEnabled = false;
@@ -222,6 +223,7 @@
             yvel:0,
             maxvel:0,
             girth:0,
+            spriteLocs:[0,0,spritesize,spritesize],
 
             physics:function(){
               vegan.x += vegan.xvel;
@@ -229,27 +231,55 @@
 
               vegan.maxvel = (2*gamecanv.h)/1000;
 
-              vegan.w = hundscale*2 + vegan.girth;
-              vegan.h = hundscale*2 + vegan.girth;
+              vegan.w = hundscale*5 + vegan.girth;
+              vegan.h = hundscale*5 + vegan.girth;
             },
 
             drawvegan:function(){
-              context.fillStyle = "#8c5635";
-              context.fillRect(vegan.x, vegan.y, vegan.w, vegan.h);
+              // context.fillStyle = "#8c5635";
+              // context.fillRect(vegan.x, vegan.y, vegan.w, vegan.h);
+              var sx = vegan.spriteLocs[0];
+              var sy = vegan.spriteLocs[1];
+              var sw = vegan.spriteLocs[2];
+              var sh = vegan.spriteLocs[3];
+              context.drawImage(sprite_sheet, sx, sy, sw, sh, vegan.x, vegan.y, vegan.w, vegan.h)
             },
 
             findsalad:function(){
-              if(salad.x > vegan.x){
-                vegan.xvel = vegan.maxvel;
-              }else if(salad.x < vegan.x){
-                vegan.xvel = -vegan.maxvel;
+              if((Math.round(Math.abs(salad.x-(vegan.x + vegan.w/2)))) > 3){
+                  if(salad.x > vegan.x + vegan.w/2){
+                    vegan.xvel = vegan.maxvel;
+                  }
+
+                  else if(salad.x < vegan.x + vegan.w/2){
+                    vegan.xvel = -vegan.maxvel;
+                  } else {vegan.xvel =0;}
+              } else{
+                vegan.xvel =0;
               }
 
-              if(salad.y > vegan.y){
-                vegan.yvel = vegan.maxvel;
-              }else if(salad.y < vegan.y){
-                vegan.yvel = -vegan.maxvel;
+              if((Math.round(Math.abs(salad.y-(vegan.y + vegan.h/2)))) > 3){
+                if(salad.y > vegan.y + vegan.h/2){
+                  vegan.yvel = vegan.maxvel;
+                }
+                else if(salad.y < vegan.y + vegan.h/2){
+                  vegan.yvel = -vegan.maxvel;
+                } else {vegan.yvel = 0;}
+              } else {
+                vegan.yvel = 0;
               }
+
+              // if(salad.x > vegan.x){
+              //   vegan.xvel = vegan.maxvel;
+              // }else if(salad.x < vegan.x){
+              //   vegan.xvel = -vegan.maxvel;
+              // }
+              //
+              // if(salad.y > vegan.y){
+              //   vegan.yvel = vegan.maxvel;
+              // }else if(salad.y < vegan.y){
+              //   vegan.yvel = -vegan.maxvel;
+              // }
             }
 
 
@@ -264,10 +294,11 @@
             yvel:0,
             maxvel:2,
             girth:0,
+            spriteLocs:[spritesize-1, 0, spritesize,spritesize],
 
             updatevals:function(x){
-              snek.w = x + snek.girth;
-              snek.h = x + snek.girth;
+              snek.w = x*5 + snek.girth;
+              snek.h = x*5 + snek.girth;
               snek.maxvel = (2*gamecanv.h)/600;
             },
 
@@ -314,9 +345,13 @@
             },
 
             drawsnek:function(){
-              context.fillStyle = "#ffffff";
-              context.fillRect(snek.headx, snek.heady, snek.w, snek.h);
-
+              // context.fillStyle = "#ffffff";
+              // context.fillRect(snek.headx, snek.heady, snek.w, snek.h);
+              var sx = snek.spriteLocs[0];
+              var sy = snek.spriteLocs[1];
+              var sw = snek.spriteLocs[2];
+              var sh = snek.spriteLocs[3];
+              context.drawImage(sprite_sheet, sx, sy, sw, sh, snek.headx, snek.heady, snek.w, snek.h)
             },
             eat:function(){
               snek.girth += hundscale;
@@ -331,10 +366,16 @@
             y:0,
             w:0,
             h:0,
+            spriteLocs:[spritesize*2, 0, spritesize, spritesize],
 
             drawpizza:function(){
-              context.fillStyle="#e56269";
-              context.fillRect(pizza.x, pizza.y, pizza.w, pizza.h);
+              // context.fillStyle="#e56269";
+              // context.fillRect(pizza.x, pizza.y, pizza.w, pizza.h);
+              var sx = pizza.spriteLocs[0];
+              var sy = pizza.spriteLocs[1];
+              var sw = pizza.spriteLocs[2];
+              var sh = pizza.spriteLocs[3];
+              context.drawImage(sprite_sheet, sx, sy, sw, sh, pizza.x, pizza.y, pizza.w, pizza.h)
             },
 
             newpizza:function(){
@@ -344,8 +385,8 @@
               var ymax = 0;
 
 
-              pizza.w = hundscale;
-              pizza.h=hundscale;
+              pizza.w = hundscale*4;
+              pizza.h=hundscale*4;
 
               pizza.x = gamecanv.x + Math.floor(Math.random() * (gamecanv.w - pizza.w));
               pizza.y = gamecanv.y + Math.floor(Math.random() * (gamecanv.h - pizza.h));
@@ -370,10 +411,16 @@
             y:0,
             w:0,
             h:0,
+            spriteLocs:[spritesize*3, 0, spritesize, spritesize],
 
             drawsalad:function(){
-              context.fillStyle="#19c43b";
-              context.fillRect(salad.x, salad.y, salad.w, salad.h);
+              // context.fillStyle="#19c43b";
+              // context.fillRect(salad.x, salad.y, salad.w, salad.h);
+              var sx = salad.spriteLocs[0];
+              var sy = salad.spriteLocs[1];
+              var sw = salad.spriteLocs[2];
+              var sh = salad.spriteLocs[3];
+              context.drawImage(sprite_sheet, sx, sy, sw, sh, salad.x, salad.y, salad.w, salad.h)
             },
 
             eat:function(){
@@ -396,8 +443,8 @@
               var xmax = 0;
               var ymax = 0;
 
-              salad.w = hundscale;
-              salad.h=hundscale;
+              salad.w = hundscale*4;
+              salad.h= hundscale*4;
 
               salad.x = gamecanv.x + Math.floor(Math.random() * (gamecanv.w - salad.w));
               salad.y = gamecanv.y + Math.floor(Math.random() * (gamecanv.h - salad.h));
@@ -561,9 +608,11 @@
           //main loop end
         };
 
-        //adding an event listener to the tile_sheet object. takes an event and then
+        //adding an event listener to the sprite_sheet object. takes an event and then
         //executes an action => defines custom event right here
-        // tile_sheet.addEventListener("load", (event) => {
+        var sprite_sheet = new Image();
+
+        sprite_sheet.addEventListener("load", (event) => {
           window.addEventListener("keydown", controller.keyListener);
           window.addEventListener("keyup", controller.keyListener);
           window.addEventListener("touchstart", controller.touchStartHandler, {passive: false});
@@ -572,10 +621,10 @@
 
           localStorage.setItem("HP", "5");
           loop();
-        // });
+        });
         //BEGIN OF ACTUAL CODE. It runs this first and the listener does things
         //once the assests are loaded
-        // tile_sheet.src = "ship.png";
+        sprite_sheet.src = "sprites/vegan.png";
       </script>
 
   </body>
