@@ -19,10 +19,6 @@ window.onload = function() {
         },
         backgroundColor: 0x87CEEB,
 
-        // physics settings
-        physics: {
-            default: "arcade"
-        }
     }
 
     game = new Phaser.Game(gameConfig);
@@ -69,9 +65,9 @@ function create(){
   const layer = map.createStaticLayer(0, tiles, 0,0);
 
   //player
-  player = this.physics.add.sprite(100, 450, 'josh');
+  player = this.physics.add.sprite(100, 100, 'josh');
 
-  this.physics.add.collider(player, map);
+  this.physics.add.collider(player, map); //TODO replace this with a collision layer
 
   // Create the player's walking animations from the texture atlas. These are stored in the global
     // animation manager so any sprite can access them.
@@ -108,18 +104,6 @@ function create(){
   camera.setBounds(0,0, map.widthInPixels, map.heightInPixels);
 
 
-//dont need camera controls anymore, control player, camera follows, (holy shit this is easy)
-  // const cursors = this.input.keyboard.createCursorKeys();
-  // controls = new Phaser.Cameras.Controls.FixedKeyControl({
-  //   camera: camera,
-  //   left: cursors.left,
-  //   right: cursors.right,
-  //   up: cursors.up,
-  //   down: cursors.down,
-  //   speed: 0.5
-  // });
-
-cursors = this.input.keyboard.createCursorKeys();
 
 
 
@@ -133,45 +117,76 @@ cursors = this.input.keyboard.createCursorKeys();
     })
     .setScrollFactor(0);
 
+
+
   //end of create
 }
 
 //UPDATE START //////////////////////////////////////////////////////////////////////////////////
 function update(time, delta){
+  resize();
   const speed = 175;
   const prevVelocity = player.body.velocity.clone();
+  const pointer1 = this.input.activePointer;
+  var camera = this.cameras.main;
+  var worldView = camera.worldView;
+  var midx = camera.midPoint.x;
+  var midy = camera.midPoint.y;
   // Stop any previous movement from the last frame
     player.body.setVelocity(0);
 
-    // Horizontal movement
-    if (cursors.left.isDown) {
-      player.body.setVelocityX(-speed);
-    } else if (cursors.right.isDown) {
-      player.body.setVelocityX(speed);
+    //add pointer touch/left mouse button input and just move chicken right
+    if(pointer1.isDown){
+      //x movement
+        if(pointer1.x > player.x-worldView.left){
+          player.body.setVelocityX(speed);
+          player.anims.play("right-walk", true);
+        } else if(pointer1.x < player.x - worldView.left){
+          player.body.setVelocityX(-speed);
+          player.anims.play("left-walk", true);
+        } else {
+          player.body.setVelocityX(0);
+          player.anims.stop();
+        }
+
+        //y movement
+        if(pointer1.y > player.y -worldView.top){
+          player.body.setVelocityY(speed);
+          player.anims.play("front-walk", true);
+        } else if(pointer1.y < player.y - worldView.top){
+          player.body.setVelocityY(-speed);
+          player.anims.play("back-walk", true);
+        }else {
+          player.body.setVelocityY(0);
+          player.anims.stop();
+        }
+
+
+
+    } else {
+      player.anims.stop();
     }
 
-    // Vertical movement
-    if (cursors.up.isDown) {
-      player.body.setVelocityY(-speed);
-    } else if (cursors.down.isDown) {
-      player.body.setVelocityY(speed);
-    }
+    // old removed arrow key movement
+    // // Horizontal movement
+    // if (cursors.left.isDown) {
+    //   player.body.setVelocityX(-speed);
+    // } else if (cursors.right.isDown) {
+    //   player.body.setVelocityX(speed);
+    // }
+    //
+    // // Vertical movement
+    // if (cursors.up.isDown) {
+    //   player.body.setVelocityY(-speed);
+    // } else if (cursors.down.isDown) {
+    //   player.body.setVelocityY(speed);
+    // }
 
     // Normalize and scale the velocity so that player can't move faster along a diagonal
     player.body.velocity.normalize().scale(speed);
 
-    // Update the animation last and give left/right animations precedence over up/down animations
-  if (cursors.left.isDown) {
-    player.anims.play("left-walk", true);
-  } else if (cursors.right.isDown) {
-    player.anims.play("right-walk", true);
-  } else if (cursors.up.isDown) {
-    player.anims.play("back-walk", true);
-  } else if (cursors.down.isDown) {
-    player.anims.play("front-walk", true);
-  } else {
-    player.anims.stop();
-  }
+    window.focus();
+    resize();
   //end of update
 }
 
