@@ -63,6 +63,7 @@ function create(){
   const map = this.make.tilemap({data: level, tileWidth:32, tileHeight:32});
   const tiles = map.addTilesetImage("tiles");
   const layer = map.createStaticLayer(0, tiles, 0,0);
+  // layer.resizeWorld();
 
   //player
   player = this.physics.add.sprite(100, 100, 'josh');
@@ -135,10 +136,27 @@ function update(time, delta){
   // Stop any previous movement from the last frame
     player.body.setVelocity(0);
 
+    var debug = "pointerx and y: " + pointer1.x + ", " + pointer1.y + "\n"
+                + "playerx: " + player.x + "\n" +
+                "worldViewleft: " + worldView.left;
+
+    this.add
+      .text(16, 16, debug, {
+        font: "18px monospace",
+        fill: "#ffffff",
+        padding: { x: 20, y: 10 },
+        backgroundColor: "#000000"
+      })
+      .setScrollFactor(0);
+
     //add pointer touch/left mouse button input and just move chicken right
     if(pointer1.isDown){
       //x movement
-        if(pointer1.x > player.x-worldView.left){
+        if(Math.abs(pointer1.x - player.x -worldView.left) < 10){
+          player.body.setVelocityX(0);
+          player.anims.stop();
+        }
+          else if(pointer1.x > player.x-worldView.left){
           player.body.setVelocityX(speed);
           player.anims.play("right-walk", true);
         } else if(pointer1.x < player.x - worldView.left){
@@ -150,7 +168,11 @@ function update(time, delta){
         }
 
         //y movement
-        if(pointer1.y > player.y -worldView.top){
+        if(Math.abs(pointer1.y - player.y - worldView.top) < 10){
+          player.body.setVelocityY(0);
+          player.anims.stop();
+        }
+        else if(pointer1.y > player.y -worldView.top){
           player.body.setVelocityY(speed);
           player.anims.play("front-walk", true);
         } else if(pointer1.y < player.y - worldView.top){
@@ -160,7 +182,6 @@ function update(time, delta){
           player.body.setVelocityY(0);
           player.anims.stop();
         }
-
 
 
     } else {
@@ -189,6 +210,8 @@ function update(time, delta){
     resize();
   //end of update
 }
+
+
 
 function resize(){
     let canvas = document.querySelector("canvas");
