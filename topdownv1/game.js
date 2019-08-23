@@ -109,14 +109,14 @@ function create(){
 
 
 //basic directions for user
-  this.add
-    .text(16, 16, "Arrow keys to walk", {
-      font: "18px monospace",
-      fill: "#ffffff",
-      padding: { x: 20, y: 10 },
-      backgroundColor: "#000000"
-    })
-    .setScrollFactor(0);
+  // this.add
+  //   .text(16, 16, "Arrow keys to walk", {
+  //     font: "18px monospace",
+  //     fill: "#ffffff",
+  //     padding: { x: 20, y: 10 },
+  //     backgroundColor: "#000000"
+  //   })
+  //   .setScrollFactor(0);
 
 
 
@@ -136,52 +136,64 @@ function update(time, delta){
   // Stop any previous movement from the last frame
     player.body.setVelocity(0);
 
-    var debug = "pointerx and y: " + pointer1.x + ", " + pointer1.y + "\n"
-                + "playerx: " + player.x + "\n" +
-                "worldViewleft: " + worldView.left;
+    // var debug = "pointerx and y: " + pointer1.x + ", " + pointer1.y + "\n"
+    //             + "playerx: " + player.x + "\n" +
+    //             "worldViewleft: " + worldView.left;
 
-    this.add
-      .text(16, 16, debug, {
-        font: "18px monospace",
-        fill: "#ffffff",
-        padding: { x: 20, y: 10 },
-        backgroundColor: "#000000"
-      })
-      .setScrollFactor(0);
+
 
     //add pointer touch/left mouse button input and just move chicken right
     if(pointer1.isDown){
-      //x movement
-        if(Math.abs(pointer1.x - player.x -worldView.left) < 10){
-          player.body.setVelocityX(0);
-          player.anims.stop();
-        }
-          else if(pointer1.x > player.x-worldView.left){
-          player.body.setVelocityX(speed);
-          player.anims.play("right-walk", true);
-        } else if(pointer1.x < player.x - worldView.left){
-          player.body.setVelocityX(-speed);
-          player.anims.play("left-walk", true);
-        } else {
-          player.body.setVelocityX(0);
-          player.anims.stop();
-        }
+      //new x movement
+      var adjPlayerx = Math.round(player.x -worldView.left);
+      var adjPlayery = Math.round(player.y-worldView.top);
+      var ptx = Math.round(pointer1.x);
+      var pty = Math.round(pointer1.y);
+      var right, left, up, down = false;
 
-        //y movement
-        if(Math.abs(pointer1.y - player.y - worldView.top) < 10){
-          player.body.setVelocityY(0);
-          player.anims.stop();
-        }
-        else if(pointer1.y > player.y -worldView.top){
-          player.body.setVelocityY(speed);
+
+      var debug = "pointery: " + pty + "\n"
+                  + "adjplayery: " + adjPlayery + "\n"
+                  + "WVtop: " + Math.round(worldView.top) + "\n";
+
+      //new x movement, working
+      if(Math.abs(ptx - adjPlayerx) < 20){
+        debug += "Close enough x" + "\n";
+        player.body.setVelocityX(0);
+      }
+      else if(ptx > adjPlayerx){
+        debug += "right" + "\n";
+        right = true;
+        player.body.setVelocityX(speed);
+        player.anims.play("right-walk", true);
+      }
+      else if(ptx < adjPlayerx){
+        debug += "left" + "\n";
+        left = true;
+        player.body.setVelocityX(-speed);
+        player.anims.play("left-walk", true);
+      }
+
+      //new y movement working
+      if(Math.abs(pty - adjPlayery) < 20){
+        debug += "Close enough y" + "\n";
+        player.body.setVelocityY(0);
+      }
+      else if (pty > adjPlayery){
+        debug += "down" + "\n";
+        player.body.setVelocityY(speed);
+        if(!left && !right){
           player.anims.play("front-walk", true);
-        } else if(pointer1.y < player.y - worldView.top){
-          player.body.setVelocityY(-speed);
-          player.anims.play("back-walk", true);
-        }else {
-          player.body.setVelocityY(0);
-          player.anims.stop();
         }
+      }
+      else if(pty < adjPlayery){
+        debug += "up" + "\n";
+        player.body.setVelocityY(-speed);
+        if(!left && !right){
+          player.anims.play("back-walk", true);
+        }
+      }
+
 
 
     } else {
@@ -202,7 +214,14 @@ function update(time, delta){
     // } else if (cursors.down.isDown) {
     //   player.body.setVelocityY(speed);
     // }
-
+    this.add
+      .text(0, 0, debug, {
+        font: "10px monospace",
+        fill: "#ffffff",
+        padding: { x: 20, y: 10 },
+        backgroundColor: "#000000"
+      })
+      .setScrollFactor(0);
     // Normalize and scale the velocity so that player can't move faster along a diagonal
     player.body.velocity.normalize().scale(speed);
 
