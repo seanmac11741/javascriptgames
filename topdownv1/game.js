@@ -25,6 +25,7 @@ window.onload = function() {
     //global vars for the game
     let cursors;
     let player;
+    let frog;
     let showDebug =false;
 
     //these are for resizing the window dynamically
@@ -38,10 +39,17 @@ function preload(){
   this.load.spritesheet('josh', 'assets/Joshdabosh.png', {
     frameWidth: 64, frameHeight: 56
   });
+  this.load.spritesheet('frog', 'assets/Frog.png', {
+    frameWidth: 64, frameHeight: 44
+  });
 }
 
 function create(){
   //create start ______________________________________________________
+
+  window.focus();
+  resize();
+  window.addEventListener("resize", resize, false);
 
   const level = [
     [  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1 ],
