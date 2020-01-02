@@ -58,7 +58,6 @@
 
                 //PHYSICS!!!!!
 
-
                 //Screen collision on the left
                 if(player.x < 1){
                   player.x = 1;
@@ -253,7 +252,7 @@
 
           //var current_cell = "Viewport.x "+ Math.round(viewport.x,2);
           //context.fillText(current_cell, scaled_size,scaled_size+10);
-
+          const joystick = createJoystick(window);
           //print current mouse position
           context.fillStyle = "#000000";
           // context.fillText(current_mouse_pos,10,20);
@@ -296,6 +295,68 @@
         //BEGIN OF ACTUAL CODE. It runs this first and the listener does things
         //once the assests are loaded
         // tile_sheet.src = "ship.png";
+
+      // const joystick = createJoystick(document.getElementById('wrapper'));
+
+// setInterval(() => console.log(joystick.getPosition()), 16);
+//    setInterval(function(){app.makeToast(joystick.getPosition().x.toString(), false);}, 2000);
+//    setInterval(function() {app.onJoystickChange("12", "33");}, 2000);
+  setInterval(function(){app.onJoystickChange(joystick.getPosition().x.toString(), joystick.getPosition().y.toString());}, 200);
+function createJoystick(parent) {
+const maxDiff = 100;
+const stick = document.createElement('div');
+stick.classList.add('joystick');
+stick.addEventListener('mousedown', handleMouseDown);
+document.addEventListener('mousemove', handleMouseMove);
+document.addEventListener('mouseup', handleMouseUp);
+stick.addEventListener('touchstart', handleMouseDown);
+document.addEventListener('touchmove', handleMouseMove);
+document.addEventListener('touchend', handleMouseUp);
+let dragStart = null;
+let currentPos = { x: 0, y: 0 };
+function handleMouseDown(event) {
+  stick.style.transition = '0s';
+  if (event.changedTouches) {
+    dragStart = {
+      x: event.changedTouches[0].clientX,
+      y: event.changedTouches[0].clientY,
+    };
+    return;
+  }
+  dragStart = {
+    x: event.clientX,
+    y: event.clientY,
+  };
+}
+function handleMouseMove(event) {
+  if (dragStart === null) return;
+  event.preventDefault();
+  if (event.changedTouches) {
+    event.clientX = event.changedTouches[0].clientX;
+    event.clientY = event.changedTouches[0].clientY;
+  }
+  const xDiff = event.clientX - dragStart.x;
+  const yDiff = event.clientY - dragStart.y;
+  const angle = Math.atan2(yDiff, xDiff);
+  const distance = Math.min(maxDiff, Math.hypot(xDiff, yDiff));
+  const xNew = distance * Math.cos(angle);
+  const yNew = distance * Math.sin(angle);
+  stick.style.transform = `translate3d(${xNew}px, ${yNew}px, 0px)`;
+  currentPos = { x: xNew, y: yNew };
+}
+function handleMouseUp(event) {
+  if (dragStart === null) return;
+  stick.style.transition = '.2s';
+  stick.style.transform = `translate3d(0px, 0px, 0px)`;
+  dragStart = null;
+  currentPos = { x: 0, y: 0 };
+}
+parent.appendChild(stick);
+return {
+  getPosition: () => currentPos,
+};
+}
+
       </script>
 
   </body>
