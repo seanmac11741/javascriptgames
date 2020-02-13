@@ -4,4 +4,6 @@ This is a repository where I am storing all of my javascript games
 
 List of games:
   1. jsgame1, a simple platformer
-  2. Dodge a Wrench, gets progressively harder, testing touch screen functionality 
+  2. Dodge a Wrench, gets progressively harder, testing touch screen functionality
+  3. Chicken dance. To run this locally, need local webserver
+    python -m http.server
