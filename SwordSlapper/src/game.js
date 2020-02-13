@@ -72,8 +72,8 @@ class mainScene {
     // It will initialize our scene, like the positions of the sprites
     var scale = game.config.height/10;
     player = this.physics.add
-      .sprite(100, 100, 'Sheen')
-      .setSize(100, 100);
+      .sprite(scale, scale, 'Sheen')
+      .setDisplaySize(scale, scale);
 
     cursors = this.input.keyboard.createCursorKeys();
     keys = this.input.keyboard.addKeys('W,S,A,D');  // keys.W, keys.S, keys.A, keys.D
@@ -124,9 +124,12 @@ class mainScene {
 
   update() {
     const speed = 100;
+    const prevVelocity = player.body.velocity.clone();
     var scale = game.config.height/10,
     up = false,
-    down = false;
+    down = false,
+    left = false,
+    right = false;
     // This method is called 60 times per second after create()
     // It will handle all the game's logic, like movements
 
@@ -134,31 +137,37 @@ class mainScene {
     if (keys.W.isDown || this.joyStick.up) {
       up = true;
       player.body.setVelocityY(-speed);
-      player.anims.play('back-walk', true);
     } else if (keys.S.isDown || this.joyStick.down) {
       down = true;
       player.body.setVelocityY(speed);
-      player.anims.play('front-walk', true);
     } else {
       player.body.setVelocityY(0);
     }
 
     if (keys.A.isDown || this.joyStick.left) {
       player.body.setVelocityX(-speed);
-      if(!down) player.anims.play('left-walk', true);
+      left = true;
     } else if (keys.D.isDown || this.joyStick.right) {
       player.body.setVelocityX(speed);
-      if(!up) player.anims.play('right-walk', true);
+      right = true;
     } else {
       player.body.setVelocityX(0);
-      //player.anims.stop();
-    }
-
-    if (!keys.W.isDown && !keys.S.isDown && !keys.A.isDown && !keys.D.isDown) {
-      player.anims.stop();
     }
 
     player.body.velocity.normalize().scale(speed);
+
+    //animation last so that we only play one animation
+    if(left){
+      player.anims.play('left-walk', true);
+    }else if(right){
+      player.anims.play('right-walk', true);
+    }else if(up){
+      player.anims.play('back-walk', true);
+    }else if(down){
+      player.anims.play('front-walk', true);
+    }else {
+      player.anims.stop();
+    }
 
   }
 
