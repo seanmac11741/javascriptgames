@@ -62,7 +62,7 @@ class mainScene {
     });
 
     var url;
-    url = '../plugins/rexvirtualjoystickplugin.min.js';
+    url = './plugins/rexvirtualjoystickplugin.min.js';
     this.load.plugin('rexvirtualjoystickplugin', url, true);
 
   }
@@ -70,6 +70,7 @@ class mainScene {
   create() {
     // This method is called once, just after preload()
     // It will initialize our scene, like the positions of the sprites
+    var scale = game.config.height/10;
     player = this.physics.add
       .sprite(100, 100, 'Sheen')
       .setSize(100, 100);
@@ -104,11 +105,11 @@ class mainScene {
     });
 
     this.joyStick = this.plugins.get('rexvirtualjoystickplugin').add(this, {
-      x: 15,
-      y: game.config.height - this.radius,
-      radius: 10,
-      base: this.add.circle(this.x, this.y, 10, 0x888888),
-      thumb: this.add.circle(this.x, this.y, 5, 0xcccccc),
+      x: scale*1.5,
+      y: game.config.height - (scale*1.5),
+      radius: scale,
+      base: this.add.circle(this.x, this.y, scale, 0x888888),
+      thumb: this.add.circle(this.x, this.y, scale/2, 0xcccccc),
       dir: '8dir',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
       forceMin: 1,
       enable: true
@@ -123,14 +124,19 @@ class mainScene {
 
   update() {
     const speed = 100;
+    var scale = game.config.height/10,
+    up = false,
+    down = false;
     // This method is called 60 times per second after create()
     // It will handle all the game's logic, like movements
 
     player.body.setVelocity(0);
     if (keys.W.isDown || this.joyStick.up) {
+      up = true;
       player.body.setVelocityY(-speed);
       player.anims.play('back-walk', true);
     } else if (keys.S.isDown || this.joyStick.down) {
+      down = true;
       player.body.setVelocityY(speed);
       player.anims.play('front-walk', true);
     } else {
@@ -139,10 +145,10 @@ class mainScene {
 
     if (keys.A.isDown || this.joyStick.left) {
       player.body.setVelocityX(-speed);
-      player.anims.play('left-walk', true);
+      if(!down) player.anims.play('left-walk', true);
     } else if (keys.D.isDown || this.joyStick.right) {
       player.body.setVelocityX(speed);
-      player.anims.play('right-walk', true);
+      if(!up) player.anims.play('right-walk', true);
     } else {
       player.body.setVelocityX(0);
       //player.anims.stop();
@@ -165,11 +171,12 @@ class mainScene {
       }
     }
     s += '\n';
-    s += ('Force: ' + Math.floor(this.joyStick.force * 100) / 100 + '\n');
-    s += ('Angle: ' + Math.floor(this.joyStick.angle * 100) / 100 + '\n');
+    s += 'Use WASD keys or the joystick';
+    // s += ('Force: ' + Math.floor(this.joyStick.force * 100) / 100 + '\n');
+    // s += ('Angle: ' + Math.floor(this.joyStick.angle * 100) / 100 + '\n');
     this.text.setText(s);
-    
-    this.joyStick.y = game.config.height - this.joyStick.radius;
+
+    // this.joyStick.y = game.config.height - this.joyStick.radius;
   }
 
 }
