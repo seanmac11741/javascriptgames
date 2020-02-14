@@ -1,6 +1,7 @@
 //global vars accessable everywhere
 let game;
 let player;
+let sword;
 let cursors;
 let keys;
 let gameOptions = {
@@ -60,6 +61,9 @@ class mainScene {
     this.load.spritesheet('Sheen', 'assets/Seanart1.png', {
       frameWidth: 16, frameHeight: 16
     });
+    this.load.spritesheet('sword', 'assets/sword.png', {
+      frameWidth: 16, frameHeight: 16
+    });
 
     this.load.image('FSbutton', 'assets/fullscreen.png');
 
@@ -72,12 +76,31 @@ class mainScene {
   create() {
     // This method is called once, just after preload()
     // It will initialize our scene, like the positions of the sprites
+    var height = game.config.height;
+    var width = game.config.width;
     var scale = game.config.height/10;
+    var helper = this.text = this.add.text(0, 0);
+
+    var directions = 'Use WASD keys or the joystick to move';
+    helper.setText(directions);
 
     player = this.physics.add
       .sprite(scale, scale, 'Sheen')
       .setDisplaySize(scale, scale)
       .setCollideWorldBounds(true);
+
+    sword = this.physics.add
+    .sprite(width/2, height/2, 'sword');
+
+    var collider = this.physics.add.overlap(player, sword, function(){
+      //destroy sword
+      sword.destroy();
+      //destroy this collider
+      collider.destroy();
+      //pop up some text saying, "you have sword! use it with space or button!"
+      var s = 'You found a sword! \n Press space to swing it!';
+      helper.setText(s);
+    });
 
     var fs = this.make.image({
       x: game.config.width - scale/2,
@@ -88,8 +111,8 @@ class mainScene {
       //   y: scale
       // },
       add:true
-    }).setDisplaySize(scale, scale);
-    fs.setInteractive().on('pointerdown', function() {
+    }).setDisplaySize(scale, scale)
+    .setInteractive().on('pointerdown', function() {
       if(this.scale.isFullscreen){
         this.scale.stopFullscreen();
       }else{
@@ -98,7 +121,7 @@ class mainScene {
     }, this);
 
     cursors = this.input.keyboard.createCursorKeys();
-    keys = this.input.keyboard.addKeys('W,S,A,D');  // keys.W, keys.S, keys.A, keys.D
+    keys = this.input.keyboard.addKeys('W,S,A,D,SPACE');  // keys.W, keys.S, keys.A, keys.D
 
     const anims = this.anims;
     anims.create({
@@ -139,7 +162,6 @@ class mainScene {
       .on('update', this.dumpJoyStickState, this);
 
     this.joyStick.setScrollFactor(0);
-    this.text = this.add.text(0, 0);
     this.dumpJoyStickState();
 
   }
@@ -197,16 +219,16 @@ class mainScene {
     var cursorKeys = this.joyStick.createCursorKeys();
     var s = 'Use WASD keys or the joystick to move';
     // var s = 'Key down: ';
-    for (var name in cursorKeys) {
-      if (cursorKeys[name].isDown) {
-        s += name + ' ';
-      }
-    }
+    // for (var name in cursorKeys) {
+    //   if (cursorKeys[name].isDown) {
+    //     s += name + ' ';
+    //   }
+    // }
     // s += '\n';
     // s += 'Use WASD keys or the joystick';
     // s += ('Force: ' + Math.floor(this.joyStick.force * 100) / 100 + '\n');
     // s += ('Angle: ' + Math.floor(this.joyStick.angle * 100) / 100 + '\n');
-    this.text.setText(s);
+    // this.text.setText(s);
 
     // this.joyStick.y = game.config.height - this.joyStick.radius;
   }
