@@ -61,8 +61,10 @@ class mainScene {
       frameWidth: 16, frameHeight: 16
     });
 
+    this.load.image('FSbutton', 'assets/fullscreen.png');
+
     var url;
-    url = './plugins/rexvirtualjoystickplugin.min.js';
+    url = 'plugins/rexvirtualjoystickplugin.min.js';
     this.load.plugin('rexvirtualjoystickplugin', url, true);
 
   }
@@ -71,9 +73,29 @@ class mainScene {
     // This method is called once, just after preload()
     // It will initialize our scene, like the positions of the sprites
     var scale = game.config.height/10;
+
     player = this.physics.add
       .sprite(scale, scale, 'Sheen')
-      .setDisplaySize(scale, scale);
+      .setDisplaySize(scale, scale)
+      .setCollideWorldBounds(true);
+
+    var fs = this.make.image({
+      x: game.config.width - scale/2,
+      y: scale/2,
+      key: 'FSbutton',
+      // scale: {
+      //   x: scale,
+      //   y: scale
+      // },
+      add:true
+    }).setDisplaySize(scale, scale);
+    fs.setInteractive().on('pointerdown', function() {
+      if(this.scale.isFullscreen){
+        this.scale.stopFullscreen();
+      }else{
+        this.scale.startFullscreen();
+      }
+    }, this);
 
     cursors = this.input.keyboard.createCursorKeys();
     keys = this.input.keyboard.addKeys('W,S,A,D');  // keys.W, keys.S, keys.A, keys.D
@@ -173,14 +195,15 @@ class mainScene {
 
   dumpJoyStickState() {
     var cursorKeys = this.joyStick.createCursorKeys();
-    var s = 'Key down: ';
+    var s = 'Use WASD keys or the joystick to move';
+    // var s = 'Key down: ';
     for (var name in cursorKeys) {
       if (cursorKeys[name].isDown) {
         s += name + ' ';
       }
     }
-    s += '\n';
-    s += 'Use WASD keys or the joystick';
+    // s += '\n';
+    // s += 'Use WASD keys or the joystick';
     // s += ('Force: ' + Math.floor(this.joyStick.force * 100) / 100 + '\n');
     // s += ('Angle: ' + Math.floor(this.joyStick.angle * 100) / 100 + '\n');
     this.text.setText(s);
