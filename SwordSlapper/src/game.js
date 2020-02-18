@@ -4,6 +4,9 @@ let player;
 let sword;
 let cursors;
 let keys;
+var angle1 = 0;
+var swordfound =false;
+var slap = false;
 let gameOptions = {
   playerGrav: 0,
 }
@@ -66,6 +69,7 @@ class mainScene {
     });
 
     this.load.image('FSbutton', 'assets/fullscreen.png');
+    this.load.image('Abutton', 'assets/abutton.png');
 
     var url;
     url = 'plugins/rexvirtualjoystickplugin.min.js';
@@ -93,13 +97,16 @@ class mainScene {
     .sprite(width/2, height/2, 'sword');
 
     var collider = this.physics.add.overlap(player, sword, function(){
-      //destroy sword
-      sword.destroy();
-      //destroy this collider
-      collider.destroy();
-      //pop up some text saying, "you have sword! use it with space or button!"
-      var s = 'You found a sword! \n Press space to swing it!';
-      helper.setText(s);
+      if(!swordfound){
+        //destroy sword
+        sword.visible = false;
+        //destroy this collider
+        collider.destroy();
+        swordfound = true;
+        //pop up some text saying, "you have sword! use it with space or button!"
+        var s = 'You found a sword! \n Press space or attack to swing it!';
+        helper.setText(s);
+      }
     });
 
     var fs = this.make.image({
@@ -119,6 +126,20 @@ class mainScene {
         this.scale.startFullscreen();
       }
     }, this);
+
+    var abut = this.make.image({
+      x: game.config.width - scale/2,
+      y: game.config.height - scale/2,
+      key: 'Abutton',
+      add:true
+    }).setDisplaySize(scale, scale)
+    .setInteractive().on('pointerdown', function(){
+      slap = true;
+      // console.log('slapp!');
+    }, this)
+    .on('pointerup', function(){
+      slap = false;
+    });
 
     cursors = this.input.keyboard.createCursorKeys();
     keys = this.input.keyboard.addKeys('W,S,A,D,SPACE');  // keys.W, keys.S, keys.A, keys.D
@@ -212,6 +233,33 @@ class mainScene {
     }else {
       player.anims.stop();
     }
+
+    //sword swinging
+    if((keys.SPACE.isDown || slap) && swordfound){
+      sword.visible =true;
+      // this.text.setText('Space clicked');
+      if(right){
+        sword.setAngle(90);
+        sword.setPosition(player.x +player.width, player.y + player.width/2);
+      }else if(left){
+        sword.setAngle(270);
+        sword.setPosition(player.x -player.width, player.y + player.width/2);
+      }else if(up){
+        sword.setAngle(0);
+        sword.setPosition(player.x + player.width/4, player.y - player.height);
+      }else if(down){
+        sword.setAngle(180);
+        sword.setPosition(player.x - player.width/2, player.y + player.height*1.5);
+      }
+
+    }else if(swordfound){
+      sword.visible = false;
+      sword.setPosition(-200, -200);
+      // this.text.setText('No sword');
+    }
+
+    // Phaser.Math.RotateAroundDistance(sword, player.x, player.y, angle1, scale);
+    // angle1 = Phaser.Math.Angle.Wrap(angle1, + -.02);
 
   }
 
