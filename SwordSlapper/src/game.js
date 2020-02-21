@@ -27,7 +27,7 @@ window.onload = function () {
         target: null,
         capture: true
       },
-      activePointers: 1,
+      activePointers: 4,
       touch: {
         target: null,
         capture: true
