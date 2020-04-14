@@ -7,9 +7,6 @@ let keys;
 var angle1 = 0;
 var swordfound =false;
 var slap = false;
-let gameOptions = {
-  playerGrav: 0,
-}
 
 window.onload = function () {
   let gameConfig = {
