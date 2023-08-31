@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Snake Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: black;
+        }
+
+        canvas {
+            border: 2px solid white;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <script>
+        // Get canvas and context
+        const canvas = document.getElementById("gameCanvas");
+        let ctx = canvas.getContext("2d");
+        ctx.imageSmoothingEnabled = false;
+        ctx.font = "12px Arial";
+
+        // Snake initial positions and speed
+        let snake = [{ x: 10, y: 10, w: 10, h: 10 }];
+        let speed = 2;
+        let dx = speed;
+        let dy = 0;
+        let currentDir = 'R';
+        let score = 0;
+
+        // Food initial position
+        let food = { x: 100, y: 100, w: 10, h: 10 };
+
+        // Game loop
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            moveSnake();
+            drawSnake();
+            drawFood();
+            drawScore();
+
+            if (isCollisionWithWall()) {
+                // End the game if there's a collision
+                console.log('wall hit!');
+                alert("Game Over! Score: " + score);
+                score = 0;
+                document.location.reload();
+                return;
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        //keep track of score 
+        function drawScore() {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText("Use arrow keys to control! score: " + score, 10, 20);
+        }
+
+        // Move the snake
+        function moveSnake() {
+            const newHead = { x: snake[0].x + dx, y: snake[0].y + dy, w: 10, h: 10 };
+            snake.unshift(newHead);
+            //check if we got a foods 
+            if (collision(snake[0], food)) {
+                console.log('food hit!');
+                generateFood();
+                growSnake();
+                score++;
+            } else {
+                snake.pop();
+            }
+        }
+
+        // Draw the snake
+        function drawSnake() {
+            snake.forEach(segment => {
+                ctx.fillStyle = "green";
+                ctx.fillRect(segment.x, segment.y, segment.w, segment.h);
+            });
+        }
+
+        // Generate new food
+        function generateFood() {
+            food.x = Math.floor(Math.random() * (canvas.width / 10)) * 10;
+            food.y = Math.floor(Math.random() * (canvas.height / 10)) * 10;
+        }
+
+        // Draw the food
+        function drawFood() {
+            ctx.fillStyle = "red";
+            ctx.fillRect(food.x, food.y, food.h, food.w);
+        }
+
+        // Check for collisions
+        function isCollisionWithWall() {
+            return (
+                snake[0].x < 0 ||
+                snake[0].x >= canvas.width ||
+                snake[0].y < 0 ||
+                snake[0].y >= canvas.height ||
+                snake.slice(1).some(segment => segment.x === snake[0].x && segment.y === snake[0].y)
+            );
+        }
+
+        //GENERIC COLLISION FUNCTION THAT I LOVE. Takes input of two objects and
+        //returns true if they are touching
+        function collision(objectA, objectB) {
+            //collision(ax, ay, aw, ah, bx, by, bw, bh) {
+            if (objectA.x < objectB.x + objectB.w &&
+                objectA.y < objectB.y + objectB.h &&
+                objectB.x < objectA.x + objectA.w &&
+                objectB.y < objectA.y + objectA.h) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        };
+
+        //grows snake tail
+        function growSnake() {
+            const tail = snake[snake.length - 1];
+            const newTail = { x: tail.x, y: tail.y, w: 10, h: 10 };
+            snake.push(newTail);
+        }
+
+        // Handle keyboard input
+        document.addEventListener("keydown", event => {
+            switch (event.key) {
+                case "ArrowUp":
+                    if (currentDir != 'D') {
+                        dx = 0;
+                        dy = -speed;
+                        currentDir = 'U';
+                    }
+                    break;
+                case "ArrowDown":
+                    if (currentDir != 'U') {
+                        dx = 0;
+                        dy = speed;
+                        currentDir = 'D';
+                    }
+                    break;
+                case "ArrowLeft":
+                    if (currentDir != 'R') {
+                        dx = -speed;
+                        dy = 0;
+                        currentDir = 'L';
+                    }
+                    break;
+                case "ArrowRight":
+                    if (currentDir != 'L') {
+                        dx = speed;
+                        dy = 0;
+                        currentDir = 'R';
+                    }
+                    break;
+            }
+        });
+
+        // Start the game loop
+        gameLoop();
+    </script>
+</body>
+
+</html>
