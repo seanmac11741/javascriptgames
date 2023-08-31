@@ -112,8 +112,8 @@
     };
 
     var drop = {
-      x: [300],
-      y: [0],
+      x: [300, 310, 100],
+      y: [0, -10, -40],
       w: 20,
       h: 20,
       speed: 5,
@@ -150,10 +150,70 @@
       }
     };
 
+    var pew = {
+      x: [],
+      y: [],
+      w: 5,
+      h: 20,
+      speed: 10,
+      cooldown: 3,
+      currentCD: 11,
+
+      drawpew: function () {
+        context.fillStyle = "#cf0e0e";
+        for (var i = 0; i < pew.x.length; i++) {
+          context.fillRect(pew.x[i], pew.y[i], pew.w, pew.h);
+        }
+
+      },
+
+      addPew: function () {
+        //make a new pew
+        if (pew.currentCD > pew.cooldown) {
+          let newPewx = player.x + player.width / 2,
+            newPewy = player.y + (player.height * 0.5);
+          pew.x.push(newPewx);
+          pew.y.push(newPewy);
+          pew.currentCD = 0;
+          // console.log('new pew added!');
+        }
+      },
+
+      physics: function () {
+
+        //moving stuff 
+        for (var i = 0; i < pew.x.length; i++) {
+          //move pews up by the speed 
+          pew.y[i] -= pew.speed;
+          // check if pew is off screen and delete it from array 
+          if (pew.y[i] < 0) {
+            pew.x.splice(i, 1);
+            pew.y.splice(i, 1);
+            console.log('pew ran away');
+          }
+        }
+
+        //physics to see if we hit a drop
+        for (var i = 0; i < pew.x.length; i++) {
+          //for each pew, check if it hit a drop 
+          for (var j = 0; j < drop.x.length; j++) {
+            if (collision(pew.x[i], pew.y[i], pew.w, pew.h,
+              drop.x[j], drop.y[j], drop.w, drop.h)) {
+              //move the drop offscreen so it will get cycled through again 
+              drop.y[j] = context.canvas.height * 2;
+              //bullets only kill one meteor 
+              pew.x.splice(i, 1);
+              pew.y.splice(i, 1);
+            }
+          }
+        }
+
+      }
+    };
+
     var mousex = 300;
 
     //CONTROLLER VARS AND FUNCTIONS
-    // var audio = new Audio('connor1.mp3');
     var controller = {
       mouse: false,
 
@@ -162,9 +222,17 @@
       keyListener: function (event) {
         //this var sets the key state to either 1: pushing a key or 2: not pushing a key
         var key_state = (event.type == "keydown") ? true : false;
+        //This will print the code you need 
+        // console.log("keycode: " + event.keyCode);
+        // console.log("keycode: " + event.button);
+
+        if (event.keyCode == 32 || event.type == "mouseup") {
+          controller.space = true;
+        }
 
         if (event.type == "mousemove") {
-          if (event.clientX > context.canvas.offsetLeft && event.clientX < context.canvas.offsetLeft + context.canvas.width) {
+          if (event.clientX > context.canvas.offsetLeft &&
+            event.clientX < context.canvas.offsetLeft + context.canvas.width) {
             var relx = event.clientX - context.canvas.offsetLeft;
             // console.log(relx);
             controller.mouse = true;
@@ -182,10 +250,10 @@
       e.preventDefault();
       var touchloc = e.targetTouches[0];
       //keeps track of continuous touches, hopefully
-      player.x = touchloc.pageX - context.canvas.offsetLeft - player.width / 2;
+      // player.x = touchloc.pageX - context.canvas.offsetLeft - player.width / 2;
+      mousex = touchloc.pageX;
+      controller.space = true;
       // player.y = touchloc.pageY - context.canvas.offsetTop + player.height;
-
-
     }
 
     //GENERIC COLLISION FUNCTION THAT I LOVE. Takes input of two objects and
@@ -210,14 +278,16 @@
     //IMPORTANT!!!! USE THIS SHIT TO SWITCH ANIMATIONS
     var loopcount = 0;
 
+    //Main game loop
     function loop() {
       context.canvas.width = window.innerWidth - 50;
       context.canvas.height = window.innerHeight - 50;
 
       context.font = "20px Arial";
 
-      if (loopcount > 100) {
+      if (loopcount > 30) {
         loopcount = 1;
+        pew.currentCD++;
       }
 
       loopcount += 4.5;
@@ -232,15 +302,24 @@
       //context.drawImage(title_sheet,0,0,width, height);
 
       //after initializing everything, allow for input from user via listeners
-      //STARTS THE JUMP
-      if (controller.mouse) {
-        player.x = mousex - player.width / 2;
+      //adjust player position 
+      // if (controller.mouse) {
+      let oldPos = player.x;
+      let newPos = mousex - player.width / 2;
+      if (Math.abs(newPos - oldPos) < player.width) {
+        //just don't jiggle
+      } else if (newPos - oldPos > 0) {
+        //move to the right 
+        player.x_velocity += 0.8;
+      } else {
+        //move to left 
+        player.x_velocity -= 0.8;
       }
+      // }
 
       if (controller.space) {
-        // pew.spawn = true;
-        // pew.x = player.x + player.width;
-        // pew.y = player.y + (player.height * 0.5);
+        pew.addPew();
+        controller.space = false;
       }
 
       /* ----------------------------COLLISION SECTION -------------------------------- */
@@ -272,6 +351,9 @@
       drop.physics();
       drop.drawdrop();
 
+      pew.physics();
+      pew.drawpew();
+
       window.requestAnimationFrame(loop);
       //main loop end
     };
@@ -289,6 +371,7 @@
     window.addEventListener("keydown", controller.keyListener);
     window.addEventListener("keyup", controller.keyListener);
     window.addEventListener("mousemove", controller.keyListener, { passive: false });
+    window.addEventListener("mouseup", controller.keyListener);
     window.addEventListener("touchmove", touchMoveHandler, { passive: false });
     localStorage.setItem("HP", "5");
     loop();
