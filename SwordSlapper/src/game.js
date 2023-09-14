@@ -53,7 +53,7 @@ window.onload = function () {
   game = new Phaser.Game(gameConfig);
 }
 
-class mainScene {
+class mainScene extends Phaser.Scene {
 
   preload() {
     // This method is called once at the beginning
@@ -62,7 +62,8 @@ class mainScene {
       frameWidth: 16, frameHeight: 16
     });
     this.load.spritesheet('sword', 'assets/sword.png', {
-      frameWidth: 16, frameHeight: 16
+      frameWidth: 16,
+      frameHeight: 16
     });
 
     this.load.image('FSbutton', 'assets/fullscreen.png');
