@@ -5,7 +5,7 @@ let sword;
 let cursors;
 let keys;
 var angle1 = 0;
-var swordfound =false;
+var swordfound = false;
 var slap = false;
 
 window.onload = function () {
@@ -76,10 +76,11 @@ class mainScene {
 
   create() {
     // This method is called once, just after preload()
+    this.scale.lockOrientation('landscape');
     // It will initialize our scene, like the positions of the sprites
     var height = game.config.height;
     var width = game.config.width;
-    var scale = game.config.height/10;
+    var scale = game.config.height / 10;
     var helper = this.text = this.add.text(0, 0);
 
     var directions = 'Use WASD keys or the joystick to move';
@@ -91,10 +92,10 @@ class mainScene {
       .setCollideWorldBounds(true);
 
     sword = this.physics.add
-    .sprite(width/2, height/2, 'sword');
+      .sprite(width / 2, height / 2, 'sword');
 
-    var collider = this.physics.add.overlap(player, sword, function(){
-      if(!swordfound){
+    var collider = this.physics.add.overlap(player, sword, function () {
+      if (!swordfound) {
         //destroy sword
         sword.visible = false;
         //destroy this collider
@@ -106,37 +107,38 @@ class mainScene {
       }
     });
 
+    //fullscreen button
     var fs = this.make.image({
-      x: game.config.width - scale/2,
-      y: scale/2,
+      x: game.config.width - 20 / 2,
+      y: 20 / 2,
       key: 'FSbutton',
       // scale: {
       //   x: scale,
       //   y: scale
       // },
-      add:true
-    }).setDisplaySize(scale, scale)
-    .setInteractive().on('pointerdown', function() {
-      if(this.scale.isFullscreen){
-        this.scale.stopFullscreen();
-      }else{
-        this.scale.startFullscreen();
-      }
-    }, this);
+      add: true
+    }).setDisplaySize(20, 20)
+      .setInteractive().on('pointerdown', function () {
+        if (this.scale.isFullscreen) {
+          this.scale.stopFullscreen();
+        } else {
+          this.scale.startFullscreen();
+        }
+      }, this);
 
     var abut = this.make.image({
-      x: game.config.width - scale/2,
-      y: game.config.height - scale/2,
+      x: game.config.width - scale / 2,
+      y: game.config.height - scale / 2,
       key: 'Abutton',
-      add:true
+      add: true
     }).setDisplaySize(scale, scale)
-    .setInteractive().on('pointerdown', function(){
-      slap = true;
-      // console.log('slapp!');
-    }, this)
-    .on('pointerup', function(){
-      slap = false;
-    });
+      .setInteractive().on('pointerdown', function () {
+        slap = true;
+        // console.log('slapp!');
+      }, this)
+      .on('pointerup', function () {
+        slap = false;
+      });
 
     cursors = this.input.keyboard.createCursorKeys();
     keys = this.input.keyboard.addKeys('W,S,A,D,SPACE');  // keys.W, keys.S, keys.A, keys.D
@@ -168,11 +170,11 @@ class mainScene {
     });
 
     this.joyStick = this.plugins.get('rexvirtualjoystickplugin').add(this, {
-      x: scale*1.5,
-      y: game.config.height - (scale*1.5),
+      x: scale * 1.5,
+      y: game.config.height - (scale * 1.5),
       radius: scale,
       base: this.add.circle(this.x, this.y, scale, 0x888888),
-      thumb: this.add.circle(this.x, this.y, scale/2, 0xcccccc),
+      thumb: this.add.circle(this.x, this.y, scale / 2, 0xcccccc),
       dir: '8dir',   // 'up&down'|0|'left&right'|1|'4dir'|2|'8dir'|3
       forceMin: 1,
       enable: true
@@ -187,11 +189,11 @@ class mainScene {
   update() {
     const speed = 100;
     const prevVelocity = player.body.velocity.clone();
-    var scale = game.config.height/10,
-    up = false,
-    down = false,
-    left = false,
-    right = false;
+    var scale = game.config.height / 10,
+      up = false,
+      down = false,
+      left = false,
+      right = false;
     // This method is called 60 times per second after create()
     // It will handle all the game's logic, like movements
 
@@ -219,37 +221,37 @@ class mainScene {
     player.body.velocity.normalize().scale(speed);
 
     //animation last so that we only play one animation
-    if(left){
+    if (left) {
       player.anims.play('left-walk', true);
-    }else if(right){
+    } else if (right) {
       player.anims.play('right-walk', true);
-    }else if(up){
+    } else if (up) {
       player.anims.play('back-walk', true);
-    }else if(down){
+    } else if (down) {
       player.anims.play('front-walk', true);
-    }else {
+    } else {
       player.anims.stop();
     }
 
     //sword swinging
-    if((keys.SPACE.isDown || slap) && swordfound){
-      sword.visible =true;
+    if ((keys.SPACE.isDown || slap) && swordfound) {
+      sword.visible = true;
       // this.text.setText('Space clicked');
-      if(right){
+      if (right) {
         sword.setAngle(90);
-        sword.setPosition(player.x +player.width, player.y + player.width/2);
-      }else if(left){
+        sword.setPosition(player.x + player.width, player.y + player.width / 2);
+      } else if (left) {
         sword.setAngle(270);
-        sword.setPosition(player.x -player.width, player.y + player.width/2);
-      }else if(up){
+        sword.setPosition(player.x - player.width, player.y + player.width / 2);
+      } else if (up) {
         sword.setAngle(0);
-        sword.setPosition(player.x + player.width/4, player.y - player.height);
-      }else if(down){
+        sword.setPosition(player.x + player.width / 4, player.y - player.height);
+      } else if (down) {
         sword.setAngle(180);
-        sword.setPosition(player.x - player.width/2, player.y + player.height*1.5);
+        sword.setPosition(player.x - player.width / 2, player.y + player.height * 1.5);
       }
 
-    }else if(swordfound){
+    } else if (swordfound) {
       sword.visible = false;
       sword.setPosition(-200, -200);
       // this.text.setText('No sword');
