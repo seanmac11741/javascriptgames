@@ -7,6 +7,7 @@ let keys;
 var angle1 = 0;
 var swordfound = false;
 var slap = false;
+let lastDir = 'RIGHT';
 
 window.onload = function () {
   let gameConfig = {
@@ -42,6 +43,7 @@ window.onload = function () {
     physics: {
       default: "arcade",
       arcade: {
+        debug: true, //toggle this to see collisions boundaries 
         gravity: {
           y: 0
         }
@@ -64,6 +66,10 @@ class mainScene extends Phaser.Scene {
     this.load.spritesheet('sword', 'assets/sword.png', {
       frameWidth: 16,
       frameHeight: 16
+    });
+    this.load.spritesheet('Terrain', 'assets/GrassandRocks.png', {
+      frameWidth: 32,
+      frameHeight: 32,
     });
 
     this.load.image('FSbutton', 'assets/fullscreen.png');
@@ -94,6 +100,10 @@ class mainScene extends Phaser.Scene {
 
     sword = this.physics.add
       .sprite(width / 2, height / 2, 'sword');
+    sword.setScale(2, 2);
+
+    this.rock = this.physics.add.staticImage(100, 50, 'Terrain', 1);
+    this.physics.add.collider(player, this.rock);
 
     var collider = this.physics.add.overlap(player, sword, function () {
       if (!swordfound) {
@@ -190,8 +200,7 @@ class mainScene extends Phaser.Scene {
   update() {
     const speed = 100;
     const prevVelocity = player.body.velocity.clone();
-    var scale = game.config.height / 10,
-      up = false,
+    let up = false,
       down = false,
       left = false,
       right = false;
@@ -201,9 +210,11 @@ class mainScene extends Phaser.Scene {
     player.body.setVelocity(0);
     if (keys.W.isDown || this.joyStick.up) {
       up = true;
+      lastDir = 'UP';
       player.body.setVelocityY(-speed);
     } else if (keys.S.isDown || this.joyStick.down) {
       down = true;
+      lastDir = 'DOWN';
       player.body.setVelocityY(speed);
     } else {
       player.body.setVelocityY(0);
@@ -212,9 +223,11 @@ class mainScene extends Phaser.Scene {
     if (keys.A.isDown || this.joyStick.left) {
       player.body.setVelocityX(-speed);
       left = true;
+      lastDir = 'LEFT';
     } else if (keys.D.isDown || this.joyStick.right) {
       player.body.setVelocityX(speed);
       right = true;
+      lastDir = 'RIGHT';
     } else {
       player.body.setVelocityX(0);
     }
@@ -238,18 +251,26 @@ class mainScene extends Phaser.Scene {
     if ((keys.SPACE.isDown || slap) && swordfound) {
       sword.visible = true;
       // this.text.setText('Space clicked');
-      if (right) {
+      if (lastDir == 'RIGHT') {
         sword.setAngle(90);
         sword.setPosition(player.x + player.width, player.y + player.width / 2);
-      } else if (left) {
+      } else if (lastDir == 'LEFT') {
         sword.setAngle(270);
         sword.setPosition(player.x - player.width, player.y + player.width / 2);
-      } else if (up) {
+      } else if (lastDir == 'UP') {
         sword.setAngle(0);
         sword.setPosition(player.x + player.width / 4, player.y - player.height);
-      } else if (down) {
+      } else if (lastDir == 'DOWN') {
         sword.setAngle(180);
         sword.setPosition(player.x - player.width / 2, player.y + player.height * 1.5);
+        // Phaser.Math.RotateAroundDistance(sword, player.x, player.y, 10, .010);
+        // Phaser.Actions.RotateAround(sword, { x: player.x, y: player.y }, 0.01);
+        // Phaser.Actions.PlaceOnCircle(
+        //   [sword],
+        //   this.circle,
+        //   this.startAngle.getValue(),
+        //   this.endAngle.getValue()
+        // );
       }
 
     } else if (swordfound) {
