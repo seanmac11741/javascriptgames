@@ -37,13 +37,14 @@ window.onload = function () {
     width: 400,
     height: 300,
     pixelArt: true,
+    roundPixels: true,
     backgroundColor: 0x444444,
     plugins: {
     },
     physics: {
       default: "arcade",
       arcade: {
-        debug: true, //toggle this to see collisions boundaries 
+        // debug: true, //toggle this to see collisions boundaries 
         gravity: {
           y: 0
         }
@@ -72,6 +73,9 @@ class mainScene extends Phaser.Scene {
       frameHeight: 32,
     });
 
+    this.load.image("tiles", "assets/GrassandRocks.png");
+    this.load.tilemapTiledJSON('map', "assets/map1.json");
+
     this.load.image('FSbutton', 'assets/fullscreen.png');
     this.load.image('Abutton', 'assets/abutton.png');
 
@@ -88,22 +92,42 @@ class mainScene extends Phaser.Scene {
     var height = game.config.height;
     var width = game.config.width;
     var scale = game.config.height / 10;
-    var helper = this.text = this.add.text(0, 0);
 
-    var directions = 'Use WASD keys or the joystick to move';
-    helper.setText(directions);
+    const map = this.make.tilemap({
+      key: "map",
+      tileWidth: 32,
+      tileHeight: 32
+    });
+
+    const tileset = map.addTilesetImage("GrassandRocks", "tiles");
+    const groundLayer = map.createStaticLayer("Ground", tileset, 0, 0);
+    const rockLayer = map.createStaticLayer("Rocks", tileset, 0, 0);
+
 
     player = this.physics.add
-      .sprite(scale, scale, 'Sheen')
-      .setDisplaySize(scale, scale)
-      .setCollideWorldBounds(true);
+      .sprite(140, 140, 'Sheen')
+      .setDisplaySize(32, 32);
 
+    //collision between player and rock layer
+    this.physics.add.collider(player, rockLayer);
+    rockLayer.setCollisionBetween(1, 2);
+
+    const camera = this.cameras.main;
+    camera.startFollow(player, true);
+    camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+
+    //long grass layer on top of player, makes it look like player is going through grass 
+    const longGrassLayer = map.createDynamicLayer("Long Grass", tileset, 0, 0);
     sword = this.physics.add
       .sprite(width / 2, height / 2, 'sword');
     sword.setScale(2, 2);
 
-    this.rock = this.physics.add.staticImage(100, 50, 'Terrain', 1);
-    this.physics.add.collider(player, this.rock);
+
+    var helper = this.text = this.add.text(camera.x, camera.y);
+    var directions = 'Use WASD keys or the joystick to move';
+    helper.setText(directions);
+    // this.rock = this.physics.add.staticImage(100, 50, 'Terrain', 1);
+    // this.physics.add.collider(player, this.rock);
 
     var collider = this.physics.add.overlap(player, sword, function () {
       if (!swordfound) {
@@ -118,38 +142,39 @@ class mainScene extends Phaser.Scene {
       }
     });
 
+    //todo need to make these buttons into its own ui scene
     //fullscreen button
-    var fs = this.make.image({
-      x: game.config.width - 20 / 2,
-      y: 20 / 2,
-      key: 'FSbutton',
-      // scale: {
-      //   x: scale,
-      //   y: scale
-      // },
-      add: true
-    }).setDisplaySize(20, 20)
-      .setInteractive().on('pointerdown', function () {
-        if (this.scale.isFullscreen) {
-          this.scale.stopFullscreen();
-        } else {
-          this.scale.startFullscreen();
-        }
-      }, this);
+    // var fs = this.make.image({
+    //   x: game.config.width - 20 / 2,
+    //   y: 20 / 2,
+    //   key: 'FSbutton',
+    //   // scale: {
+    //   //   x: scale,
+    //   //   y: scale
+    //   // },
+    //   add: true
+    // }).setDisplaySize(20, 20)
+    //   .setInteractive().on('pointerdown', function () {
+    //     if (this.scale.isFullscreen) {
+    //       this.scale.stopFullscreen();
+    //     } else {
+    //       this.scale.startFullscreen();
+    //     }
+    //   }, this);
 
-    var abut = this.make.image({
-      x: game.config.width - scale / 2,
-      y: game.config.height - scale / 2,
-      key: 'Abutton',
-      add: true
-    }).setDisplaySize(scale, scale)
-      .setInteractive().on('pointerdown', function () {
-        slap = true;
-        // console.log('slapp!');
-      }, this)
-      .on('pointerup', function () {
-        slap = false;
-      });
+    // var abut = this.make.image({
+    //   x: scale / 2,
+    //   y: scale / 2,
+    //   key: 'Abutton',
+    //   add: true
+    // }).setDisplaySize(scale, scale)
+    //   .setInteractive().on('pointerdown', function () {
+    //     slap = true;
+    //     // console.log('slapp!');
+    //   }, this)
+    //   .on('pointerup', function () {
+    //     slap = false;
+    //   });
 
     cursors = this.input.keyboard.createCursorKeys();
     keys = this.input.keyboard.addKeys('W,S,A,D,SPACE');  // keys.W, keys.S, keys.A, keys.D
