@@ -59,7 +59,7 @@ class mainScene extends Phaser.Scene {
 
 
     this.player = this.physics.add
-      .sprite(140, 140, 'Sheen')
+      .sprite(140, 60, 'Sheen')
       .setDisplaySize(32, 32);
 
     //collision between player and rock layer
@@ -74,7 +74,8 @@ class mainScene extends Phaser.Scene {
     const longGrassLayer = map.createDynamicLayer("Long Grass", tileset, 0, 0);
     this.sword = this.physics.add
       .sprite(width / 2, height / 2, 'sword')
-      .setScale(2, 2);
+      .setScale(2, 2)
+      .setCircle(10, -3, -5);
     this.sword.visible = true;
     this.swordfound = false;
 
@@ -92,6 +93,8 @@ class mainScene extends Phaser.Scene {
       this.swordCollider.destroy();
     }, null, this);
 
+    //sword and grass colider TODO: figure out how to grab a tile and "chop" the grass
+    this.grassCollider = this.physics.add.collider(this.sword, longGrassLayer);
 
     //fullscreen button
     var fs = this.make.image({
@@ -132,6 +135,7 @@ class mainScene extends Phaser.Scene {
     keys = this.input.keyboard.addKeys('W,S,A,D,SPACE');  // keys.W, keys.S, keys.A, keys.D
 
     const anims = this.anims;
+    //player animations 
     anims.create({
       key: 'right-walk',
       frames: this.anims.generateFrameNumbers('Sheen', { start: 3, end: 4 }),
@@ -156,6 +160,37 @@ class mainScene extends Phaser.Scene {
       frameRate: 10,
       repeat: -1
     });
+
+    //sword animations 
+    let swordFrameRate = 7,
+      swordRepeat = 0;
+    anims.create({
+      key: 'right-swing',
+      frames: this.anims.generateFrameNumbers('sword', { start: 1, end: 3 }),
+      frameRate: swordFrameRate,
+      repeat: swordRepeat
+    });
+    anims.create({
+      key: 'down-swing',
+      frames: this.anims.generateFrameNumbers('sword', { start: 4, end: 6 }),
+      frameRate: swordFrameRate,
+      repeat: swordRepeat
+    });
+    anims.create({
+      key: 'left-swing',
+      frames: this.anims.generateFrameNumbers('sword', { start: 7, end: 9 }),
+      frameRate: swordFrameRate,
+      repeat: swordRepeat
+    });
+    anims.create({
+      key: 'up-swing',
+      frames: this.anims.generateFrameNumbers('sword', { start: 10, end: 12 }),
+      frameRate: swordFrameRate,
+      repeat: swordRepeat
+    });
+
+    this.swordLock = false; //only swing sword once per space push
+    this.playerLock = false;
 
     this.joyStick = this.plugins.get('rexvirtualjoystickplugin').add(this, {
       x: scale * 1.5,
@@ -212,6 +247,11 @@ class mainScene extends Phaser.Scene {
 
     this.player.body.velocity.normalize().scale(speed);
 
+    //if player is locked for sword swinging, then lock player position 
+    if (this.playerLock) {
+      this.player.setVelocity(0);
+    }
+
     //animation last so that we only play one animation
     if (left) {
       this.player.anims.play('left-walk', true);
@@ -225,30 +265,43 @@ class mainScene extends Phaser.Scene {
       this.player.anims.stop();
     }
 
+    //unlock sword for swinging once player lets go of space 
+    if (keys.SPACE.isUp || !slap) {
+      this.swordLock = false;
+    }
+
+    //sword move off screen and unlock player func 
+    function unlockPlayer() {
+      this.sword.setPosition(-200, -200);
+      this.playerLock = false;
+    }
+
     //sword swinging
-    if ((keys.SPACE.isDown || slap) && this.swordfound) {
+    if ((keys.SPACE.isDown || slap || this.playerLock) && this.swordfound) {
       this.sword.visible = true;
       // this.text.setText('Space clicked');
-      if (lastDir == 'RIGHT') {
-        this.sword.setAngle(90);
-        this.sword.setPosition(this.player.x + this.player.width, this.player.y + this.player.width / 2);
-      } else if (lastDir == 'LEFT') {
-        this.sword.setAngle(270);
-        this.sword.setPosition(this.player.x - this.player.width, this.player.y + this.player.width / 2);
-      } else if (lastDir == 'UP') {
-        this.sword.setAngle(0);
-        this.sword.setPosition(this.player.x + this.player.width / 4, this.player.y - this.player.height);
-      } else if (lastDir == 'DOWN') {
-        this.sword.setAngle(180);
-        this.sword.setPosition(this.player.x - this.player.width / 2, this.player.y + this.player.height * 1.5);
-        // Phaser.Math.RotateAroundDistance(this.sword, player.x, player.y, 10, .010);
-        // Phaser.Actions.RotateAround(this.sword, { x: player.x, y: player.y }, 0.01);
-        // Phaser.Actions.PlaceOnCircle(
-        //   [this.sword],
-        //   this.circle,
-        //   this.startAngle.getValue(),
-        //   this.endAngle.getValue()
-        // );
+      if (!this.swordLock) {
+        //start swinging sword once
+        this.swordLock = true;
+        //lock player in place while swinging sword
+        this.playerLock = true;
+        if (lastDir == 'RIGHT') {
+          this.sword.setPosition(this.player.x + this.player.width, this.player.y + this.player.width / 2);
+          this.sword.anims.play('right-swing', true)
+            .once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE, unlockPlayer, this);
+        } else if (lastDir == 'LEFT') {
+          this.sword.setPosition(this.player.x - this.player.width, this.player.y + this.player.width / 2);
+          this.sword.anims.play('left-swing', true)
+            .once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE, unlockPlayer, this);
+        } else if (lastDir == 'UP') {
+          this.sword.setPosition(this.player.x + this.player.width / 4, this.player.y - this.player.height);
+          this.sword.anims.play('up-swing', true)
+            .once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE, unlockPlayer, this);
+        } else if (lastDir == 'DOWN') {
+          this.sword.setPosition(this.player.x + this.player.width / 4, this.player.y + this.player.height * 1.5);
+          this.sword.anims.play('down-swing', true)
+            .once(Phaser.Animations.Events.SPRITE_ANIMATION_COMPLETE, unlockPlayer, this);
+        }
       }
 
     } else if ((keys.SPACE.isUp || !slap) && this.swordfound) {
