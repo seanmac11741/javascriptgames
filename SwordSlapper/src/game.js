@@ -1,62 +1,16 @@
 //global vars accessable everywhere
-let game;
-let player;
-let sword;
 let cursors;
 let keys;
 var angle1 = 0;
-var swordfound = false;
 var slap = false;
 let lastDir = 'RIGHT';
 
-window.onload = function () {
-  let gameConfig = {
-    parent: game,
-    type: Phaser.AUTO,
-    scale: {
-      mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH
-    },
-    input: {
-      keyboard: {
-        target: window
-      },
-      mouse: {
-        target: null,
-        capture: true
-      },
-      activePointers: 4,
-      touch: {
-        target: null,
-        capture: true
-      },
-      smoothFactor: 0,
-      gamepad: false,
-      windowEvents: true,
-    },
-    width: 400,
-    height: 300,
-    pixelArt: true,
-    roundPixels: true,
-    backgroundColor: 0x444444,
-    plugins: {
-    },
-    physics: {
-      default: "arcade",
-      arcade: {
-        // debug: true, //toggle this to see collisions boundaries 
-        gravity: {
-          y: 0
-        }
-      }
-    },
-    scene: mainScene
-  }
-
-  game = new Phaser.Game(gameConfig);
-}
 
 class mainScene extends Phaser.Scene {
+
+  constructor() {
+    super({ key: 'mainScene' }); //this labels the scene for grabbing later 
+  }
 
   preload() {
     // This method is called once at the beginning
@@ -104,77 +58,75 @@ class mainScene extends Phaser.Scene {
     const rockLayer = map.createStaticLayer("Rocks", tileset, 0, 0);
 
 
-    player = this.physics.add
+    this.player = this.physics.add
       .sprite(140, 140, 'Sheen')
       .setDisplaySize(32, 32);
 
     //collision between player and rock layer
-    this.physics.add.collider(player, rockLayer);
+    this.physics.add.collider(this.player, rockLayer);
     rockLayer.setCollisionBetween(1, 2);
 
     const camera = this.cameras.main;
-    camera.startFollow(player, true);
+    camera.startFollow(this.player, true);
     camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
     //long grass layer on top of player, makes it look like player is going through grass 
     const longGrassLayer = map.createDynamicLayer("Long Grass", tileset, 0, 0);
-    sword = this.physics.add
-      .sprite(width / 2, height / 2, 'sword');
-    sword.setScale(2, 2);
+    this.sword = this.physics.add
+      .sprite(width / 2, height / 2, 'sword')
+      .setScale(2, 2);
+    this.sword.visible = true;
+    this.swordfound = false;
 
-
-    var helper = this.text = this.add.text(camera.x, camera.y);
-    var directions = 'Use WASD keys or the joystick to move';
-    helper.setText(directions);
     // this.rock = this.physics.add.staticImage(100, 50, 'Terrain', 1);
     // this.physics.add.collider(player, this.rock);
 
-    var collider = this.physics.add.overlap(player, sword, function () {
-      if (!swordfound) {
-        //destroy sword
-        sword.visible = false;
-        //destroy this collider
-        collider.destroy();
-        swordfound = true;
-        //pop up some text saying, "you have sword! use it with space or button!"
-        var s = 'You found a sword! \n Press space or attack to swing it!';
-        helper.setText(s);
-      }
-    });
+    this.swordCollider = this.physics.add.collider(this.player, this.sword, () => {
+      // destroy sword
+      this.sword.visible = false;
+      this.swordfound = true;
+      this.sword.setPosition(-200, -200);
+      //pop up some text saying, "you have sword! use it with space or button!"
+      console.log(`Sword found`);
+      this.events.emit('setText', 'You found a sword! \n Press space or attack to swing it!');
+      this.swordCollider.destroy();
+    }, null, this);
 
-    //todo need to make these buttons into its own ui scene
+
     //fullscreen button
-    // var fs = this.make.image({
-    //   x: game.config.width - 20 / 2,
-    //   y: 20 / 2,
-    //   key: 'FSbutton',
-    //   // scale: {
-    //   //   x: scale,
-    //   //   y: scale
-    //   // },
-    //   add: true
-    // }).setDisplaySize(20, 20)
-    //   .setInteractive().on('pointerdown', function () {
-    //     if (this.scale.isFullscreen) {
-    //       this.scale.stopFullscreen();
-    //     } else {
-    //       this.scale.startFullscreen();
-    //     }
-    //   }, this);
+    var fs = this.make.image({
+      x: game.config.width - 20 / 2,
+      y: 20 / 2,
+      key: 'FSbutton',
+      // scale: {
+      //   x: scale,
+      //   y: scale
+      // },
+      add: true
+    }).setDisplaySize(20, 20)
+      .setScrollFactor(0)
+      .setInteractive().on('pointerdown', function () {
+        if (this.scale.isFullscreen) {
+          this.scale.stopFullscreen();
+        } else {
+          this.scale.startFullscreen();
+        }
+      }, this);
 
-    // var abut = this.make.image({
-    //   x: scale / 2,
-    //   y: scale / 2,
-    //   key: 'Abutton',
-    //   add: true
-    // }).setDisplaySize(scale, scale)
-    //   .setInteractive().on('pointerdown', function () {
-    //     slap = true;
-    //     // console.log('slapp!');
-    //   }, this)
-    //   .on('pointerup', function () {
-    //     slap = false;
-    //   });
+    var abut = this.make.image({
+      x: game.config.width - 30 / 2,
+      y: game.config.height - 30 / 2,
+      key: 'Abutton',
+      add: true
+    }).setDisplaySize(30, 30)
+      .setScrollFactor(0)
+      .setInteractive().on('pointerdown', function () {
+        slap = true;
+        // console.log('slapp!');
+      }, this)
+      .on('pointerup', function () {
+        slap = false;
+      });
 
     cursors = this.input.keyboard.createCursorKeys();
     keys = this.input.keyboard.addKeys('W,S,A,D,SPACE');  // keys.W, keys.S, keys.A, keys.D
@@ -224,7 +176,7 @@ class mainScene extends Phaser.Scene {
 
   update() {
     const speed = 100;
-    const prevVelocity = player.body.velocity.clone();
+    const prevVelocity = this.player.body.velocity.clone();
     let up = false,
       down = false,
       left = false,
@@ -232,79 +184,79 @@ class mainScene extends Phaser.Scene {
     // This method is called 60 times per second after create()
     // It will handle all the game's logic, like movements
 
-    player.body.setVelocity(0);
+    this.player.body.setVelocity(0);
+    this.sword.body.setVelocity(0);
     if (keys.W.isDown || this.joyStick.up) {
       up = true;
       lastDir = 'UP';
-      player.body.setVelocityY(-speed);
+      this.player.body.setVelocityY(-speed);
     } else if (keys.S.isDown || this.joyStick.down) {
       down = true;
       lastDir = 'DOWN';
-      player.body.setVelocityY(speed);
+      this.player.body.setVelocityY(speed);
     } else {
-      player.body.setVelocityY(0);
+      this.player.body.setVelocityY(0);
     }
 
     if (keys.A.isDown || this.joyStick.left) {
-      player.body.setVelocityX(-speed);
+      this.player.body.setVelocityX(-speed);
       left = true;
       lastDir = 'LEFT';
     } else if (keys.D.isDown || this.joyStick.right) {
-      player.body.setVelocityX(speed);
+      this.player.body.setVelocityX(speed);
       right = true;
       lastDir = 'RIGHT';
     } else {
-      player.body.setVelocityX(0);
+      this.player.body.setVelocityX(0);
     }
 
-    player.body.velocity.normalize().scale(speed);
+    this.player.body.velocity.normalize().scale(speed);
 
     //animation last so that we only play one animation
     if (left) {
-      player.anims.play('left-walk', true);
+      this.player.anims.play('left-walk', true);
     } else if (right) {
-      player.anims.play('right-walk', true);
+      this.player.anims.play('right-walk', true);
     } else if (up) {
-      player.anims.play('back-walk', true);
+      this.player.anims.play('back-walk', true);
     } else if (down) {
-      player.anims.play('front-walk', true);
+      this.player.anims.play('front-walk', true);
     } else {
-      player.anims.stop();
+      this.player.anims.stop();
     }
 
     //sword swinging
-    if ((keys.SPACE.isDown || slap) && swordfound) {
-      sword.visible = true;
+    if ((keys.SPACE.isDown || slap) && this.swordfound) {
+      this.sword.visible = true;
       // this.text.setText('Space clicked');
       if (lastDir == 'RIGHT') {
-        sword.setAngle(90);
-        sword.setPosition(player.x + player.width, player.y + player.width / 2);
+        this.sword.setAngle(90);
+        this.sword.setPosition(this.player.x + this.player.width, this.player.y + this.player.width / 2);
       } else if (lastDir == 'LEFT') {
-        sword.setAngle(270);
-        sword.setPosition(player.x - player.width, player.y + player.width / 2);
+        this.sword.setAngle(270);
+        this.sword.setPosition(this.player.x - this.player.width, this.player.y + this.player.width / 2);
       } else if (lastDir == 'UP') {
-        sword.setAngle(0);
-        sword.setPosition(player.x + player.width / 4, player.y - player.height);
+        this.sword.setAngle(0);
+        this.sword.setPosition(this.player.x + this.player.width / 4, this.player.y - this.player.height);
       } else if (lastDir == 'DOWN') {
-        sword.setAngle(180);
-        sword.setPosition(player.x - player.width / 2, player.y + player.height * 1.5);
-        // Phaser.Math.RotateAroundDistance(sword, player.x, player.y, 10, .010);
-        // Phaser.Actions.RotateAround(sword, { x: player.x, y: player.y }, 0.01);
+        this.sword.setAngle(180);
+        this.sword.setPosition(this.player.x - this.player.width / 2, this.player.y + this.player.height * 1.5);
+        // Phaser.Math.RotateAroundDistance(this.sword, player.x, player.y, 10, .010);
+        // Phaser.Actions.RotateAround(this.sword, { x: player.x, y: player.y }, 0.01);
         // Phaser.Actions.PlaceOnCircle(
-        //   [sword],
+        //   [this.sword],
         //   this.circle,
         //   this.startAngle.getValue(),
         //   this.endAngle.getValue()
         // );
       }
 
-    } else if (swordfound) {
-      sword.visible = false;
-      sword.setPosition(-200, -200);
-      // this.text.setText('No sword');
+    } else if ((keys.SPACE.isUp || !slap) && this.swordfound) {
+      this.sword.visible = false;
+      this.sword.setPosition(-200, -200);
     }
 
-    // Phaser.Math.RotateAroundDistance(sword, player.x, player.y, angle1, scale);
+    // Phaser.Math.RotateAroundDistance(this.sword, player.x, player.y, angle1, scale);
     // angle1 = Phaser.Math.Angle.Wrap(angle1, + -.02);
 
   }
@@ -327,4 +279,75 @@ class mainScene extends Phaser.Scene {
     // this.joyStick.y = game.config.height - this.joyStick.radius;
   }
 
-}
+};
+
+class UIScene extends Phaser.Scene {
+  constructor() {
+    super({ key: 'UIScene', active: true });
+
+    this.score = 0;
+  }
+
+  create() {
+
+
+    const helper = this.add.text(0, 0);
+    var directions = 'Use WASD keys or the joystick to move';
+    helper.setText(directions);
+
+    //  Grab a reference to the Game Scene
+    const ourGame = this.scene.get('mainScene')
+    //  Listen for events from it
+    ourGame.events.on('setText', function (text) {
+      helper.setText(text);
+    }, this);
+
+  }
+};
+
+
+
+const gameConfig = {
+  type: Phaser.AUTO,
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+  input: {
+    keyboard: {
+      target: window
+    },
+    mouse: {
+      target: null,
+      capture: true
+    },
+    activePointers: 4,
+    touch: {
+      target: null,
+      capture: true
+    },
+    smoothFactor: 0,
+    gamepad: false,
+    windowEvents: true,
+  },
+  width: 400,
+  height: 300,
+  pixelArt: true,
+  roundPixels: true,
+  backgroundColor: 0x444444,
+  plugins: {
+  },
+  physics: {
+    default: "arcade",
+    arcade: {
+      // debug: true, //toggle this to see collisions boundaries 
+      gravity: {
+        y: 0
+      }
+    }
+  },
+  parent: "container",
+  scene: [mainScene, UIScene]
+};
+
+const game = new Phaser.Game(gameConfig);
