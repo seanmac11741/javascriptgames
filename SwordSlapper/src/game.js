@@ -221,36 +221,37 @@ class mainScene extends Phaser.Scene {
 
     this.player.body.setVelocity(0);
     this.sword.body.setVelocity(0);
-    if (keys.W.isDown || this.joyStick.up) {
-      up = true;
-      lastDir = 'UP';
-      this.player.body.setVelocityY(-speed);
-    } else if (keys.S.isDown || this.joyStick.down) {
-      down = true;
-      lastDir = 'DOWN';
-      this.player.body.setVelocityY(speed);
-    } else {
-      this.player.body.setVelocityY(0);
-    }
 
-    if (keys.A.isDown || this.joyStick.left) {
-      this.player.body.setVelocityX(-speed);
-      left = true;
-      lastDir = 'LEFT';
-    } else if (keys.D.isDown || this.joyStick.right) {
-      this.player.body.setVelocityX(speed);
-      right = true;
-      lastDir = 'RIGHT';
-    } else {
-      this.player.body.setVelocityX(0);
+
+    //if player is locked for sword swinging, then lock player position 
+    if (!this.playerLock) {
+      if (keys.W.isDown || this.joyStick.up) {
+        up = true;
+        lastDir = 'UP';
+        this.player.body.setVelocityY(-speed);
+      } else if (keys.S.isDown || this.joyStick.down) {
+        down = true;
+        lastDir = 'DOWN';
+        this.player.body.setVelocityY(speed);
+      } else {
+        this.player.body.setVelocityY(0);
+      }
+
+      if (keys.A.isDown || this.joyStick.left) {
+        this.player.body.setVelocityX(-speed);
+        left = true;
+        lastDir = 'LEFT';
+      } else if (keys.D.isDown || this.joyStick.right) {
+        this.player.body.setVelocityX(speed);
+        right = true;
+        lastDir = 'RIGHT';
+      } else {
+        this.player.body.setVelocityX(0);
+      }
     }
 
     this.player.body.velocity.normalize().scale(speed);
 
-    //if player is locked for sword swinging, then lock player position 
-    if (this.playerLock) {
-      this.player.setVelocity(0);
-    }
 
     //animation last so that we only play one animation
     if (left) {
